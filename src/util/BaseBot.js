@@ -7,8 +7,8 @@ const { Client } = require("discord.js");
  * @class BaseBot
  */
 class BaseBot {
-  constructor({dir = process.cwd(), token} = {}) {
-    this.client = new Client();
+  constructor({dir = process.cwd(), token = "", clientOptions = {}} = {}) {
+    this.client = new Client(clientOptions);
 
     this.events = new Map();
     this.commands = new Map();
