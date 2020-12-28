@@ -16,14 +16,17 @@ class BaseBot {
 
     this._dir = dir;
 
-    if (token) this.token = token;
-    else {
-      if (!existsSync(join(this._dir, "token.txt"))) {
-        console.log("\x1b[1m\x1b[31mPlease provide a token in the bot startup object or create a file named \"token.txt\" in your main directory and paste your token there!\x1b[0m");
-        process.exit(0);
-      }
-      this.token = readFileSync(join(this._dir, "token.txt")).toString("utf8");
-    }
+    this.loadToken(token);
+  }
+
+  loadToken(token) {
+    if (!token) {
+      if (existsSync(join(this._dir, "token.txt"))) return this.token = readFileSync(join(this._dir, "token.txt")).toString("utf8");
+
+      console.log("\x1b[1m\x1b[31mPlease provide a token in the bot startup object or create a file named \"token.txt\" in your main directory and paste your token there!\x1b[0m");
+      process.exit(0);
+
+    } else this.token = token
   }
 
   setConfig(fileOrConfig) {
