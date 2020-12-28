@@ -3,10 +3,24 @@ const { resolve, join } = require("path");
 const { Client } = require("discord.js");
 
 /**
+ * Interface for the BaseBot Options
+ * @interface BaseBotOptions
+ * 
+ * @property {string} [dir] The current dir. If not provided, it will be the process dir.
+ * @property {string} [token] The bot token. If not provided, BaseBot will grab the token from "token.txt" in the main dir.
+ * @property {object} [clientOptions] The discord.js options for the bot client.
+ */
+
+/**
  * @name BaseBot
- * @class BaseBot
+ * @class
+ * The main BaseBot Class
  */
 class BaseBot {
+  /**
+   * Create a BaseBot instance
+   * @param {BaseBotOptions} options The options for the base
+   */
   constructor({dir = process.cwd(), token = "", clientOptions = {}} = {}) {
     this.client = new Client(clientOptions);
 
@@ -19,27 +33,51 @@ class BaseBot {
     this.loadToken(token);
   }
 
-  loadToken(token) {
+  /**
+   * @method loadToken
+   * @description Loads the bot token
+   * @returns {undefined}
+   * @param {string} [token] The bot token. If not provided, BaseBot will grab the token from "token.txt" in the main dir.
+   */
+  loadToken(token = false) {
     if (!token) {
       if (existsSync(join(this._dir, "token.txt"))) return this.token = readFileSync(join(this._dir, "token.txt")).toString("utf8");
 
       console.log("\x1b[1m\x1b[31mPlease provide a token in the bot startup object or create a file named \"token.txt\" in your main directory and paste your token there!\x1b[0m");
       process.exit(0);
 
-    } else this.token = token
+    } else this.token = token;
   }
 
+  /**
+   * @method setConfig
+   * @description Sets the config of the bot
+   * @returns {undefined}
+   * @param {string|object} fileOrConfig The bot config. Set as a string when it's a relative dir or an object if it's the options itself
+   */
   setConfig(fileOrConfig) {
     if (typeof fileOrConfig === "object") this.config = {...fileOrConfig};
     else this.config = require(join(this._dir, fileOrConfig));
   }
 
+  /**
+   * @method loadAll
+   * @description Loads the functions, events and commands
+   * @returns {undefined}
+   * @async
+   */
   async loadAll() {
     await this.loadFunctions();
     await this.loadEvents();
     await this.loadCommands();
   }
 
+  /**
+   * @method loadFunctions
+   * @description Loads the functions
+   * @returns {undefined}
+   * @async
+   */
   async loadFunctions() {
     let functions = await this.getFiles("functions");
     for (let file of functions) {
@@ -48,6 +86,13 @@ class BaseBot {
     console.log(`\x1b[33m\x1b[1m${functions.length}\x1b[0m\x1b[33m functions loaded! \x1b[0m`);
   }
 
+  /**
+   * @method loadFunction
+   * @description Loads a specific function with a file path
+   * @returns {undefined}
+   * @param {string} file The file of the function file
+   * @async
+   */
   async loadFunction(file) {
     // Try/catch block for errors
     try {
@@ -67,6 +112,12 @@ class BaseBot {
     }
   }
 
+  /**
+   * @method loadEvents
+   * @description Loads the events
+   * @returns {undefined}
+   * @async
+   */
   async loadEvents() {
     let events = await this.getFiles("events");
     for (let event of events) {
@@ -75,6 +126,13 @@ class BaseBot {
     console.log(`\x1b[34m\x1b[1m${this.events.size}\x1b[0m\x1b[34m events loaded! \x1b[0m`);
   }
 
+  /**
+   * @method loadFunction
+   * @description Loads a specific event with a file path
+   * @returns {undefined}
+   * @param {string} event The file of the event class
+   * @async
+   */
   async loadEvent(event) {
     // Try/catch block for errors
     try {
@@ -101,6 +159,12 @@ class BaseBot {
     }
   }
   
+  /**
+   * @method loadCommands
+   * @description Loads the commands
+   * @returns {undefined}
+   * @async
+   */
   async loadCommands() {
     let commands = await this.getFiles("commands");
     for (let cmd of commands) {
@@ -109,6 +173,14 @@ class BaseBot {
     console.log(`\x1b[35m\x1b[1m${this.commands.size}\x1b[0m\x1b[35m commands and \x1b[35m\x1b[1m${this.aliases.size}\x1b[0m\x1b[35m aliases loaded! \x1b[0m`);
   }
 
+
+  /**
+   * @method loadFunction
+   * @description Loads a specific command with a file path
+   * @returns {undefined}
+   * @param {string} file The file of the command class
+   * @async
+   */
   loadCommand(file) {
     // Try/catch block for errors
     try {
@@ -132,10 +204,17 @@ class BaseBot {
     }
   }
 
+  /**
+   * @method getFiles
+   * @description Gets the files of a folder, including files in subdirectories. 
+   * @async
+   * @param {string} folder The path to the folder
+   * @returns {Array[String]} An array with the paths of the files
+   */
   getFiles(folder) {
     return new Promise((res) => {
-      access(`${process.cwd()}/${folder}`, "a").then(async () => {
-        res(await this.loadFiles(`${process.cwd()}/${folder}`));
+      access(`${this._dir}/${folder}`, "a").then(async () => {
+        res(await this.loadFiles(`${this._dir}/${folder}`));
       }).catch((e) => {
         console.log(e);
         res([]);
@@ -143,6 +222,14 @@ class BaseBot {
     });
   }
 
+  /**
+   * @method loadFiles
+   * @async
+   * @description Gets the files of a folder, including files in subdirectories
+   * @returns {Array[String]} An array with the paths of the files 
+   * @param {string} dir The path to the folder
+   * @private
+   */
   async loadFiles(dir) {
     const dirents = await readdir(dir, {
       withFileTypes: true
@@ -154,6 +241,12 @@ class BaseBot {
     return Array.prototype.concat(...files);
   }
 
+  /**
+   * @method start
+   * @description Starts the bot
+   * @async
+   * @returns The return value of discord.js' client#login method.
+   */
   async start() {
     // Start the discord.js client!
     return this.client.login(this.token);
