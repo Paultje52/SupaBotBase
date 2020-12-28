@@ -76,10 +76,11 @@ class BaseBot {
    * @method loadFunctions
    * @description Loads the functions
    * @returns {undefined}
+   * @param {string} [path] The name of the functions folder
    * @async
    */
-  async loadFunctions() {
-    let functions = await this.getFiles("functions");
+  async loadFunctions(path = "functions") {
+    let functions = await this.getFiles(path);
     for (let file of functions) {
       await this.loadFunction(file);
     }
@@ -116,10 +117,11 @@ class BaseBot {
    * @method loadEvents
    * @description Loads the events
    * @returns {undefined}
+   * @param {string} [path] The name of the events folder
    * @async
    */
-  async loadEvents() {
-    let events = await this.getFiles("events");
+  async loadEvents(path = "events") {
+    let events = await this.getFiles(path);
     for (let event of events) {
       await this.loadEvent(event);
     }
@@ -163,10 +165,11 @@ class BaseBot {
    * @method loadCommands
    * @description Loads the commands
    * @returns {undefined}
+   * @param {string} [path] The name of the commands folder
    * @async
    */
-  async loadCommands() {
-    let commands = await this.getFiles("commands");
+  async loadCommands(path = "commands") {
+    let commands = await this.getFiles(path);
     for (let cmd of commands) {
       this.loadCommand(cmd);
     }
