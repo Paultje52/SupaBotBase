@@ -4,12 +4,14 @@ module.exports = class MessageHandler {
     return "message";
   }
 
-  onExecute(message) {
+  async onExecute(message) {
     if (this.main.config.disable && this.main.config.disable.message) return;
-
     if (message.author.bot) return;
 
     if (this.main.database && this.main.config.database) this.loadSettings(message);
+    this.setMessageFunctions(message);
+    if (!await this.checkMessageHandles(message)) return;
+
     let prefix = this.getFullPrefix(message);
     if (!message.content.toLowerCase().startsWith(prefix)) return;
 
@@ -23,10 +25,24 @@ module.exports = class MessageHandler {
     cmdFile.onExecute(message, args);
   }
 
+  async checkMessageHandles(message) {
+    for (let handler of this.main._messageHandlers) {
+      let res = await handler(message);
+      if (typeof res === "boolean" && !res) return false;
+    }
+    return true;
+  }
+
+  setMessageFunctions(message) {
+    for (let name in this.main._messageFunctions) {
+      message[name] = this.main._messageFunctions[name];
+    }
+  }
+
   addSlashCommandSupportData(message) {
     message.isSlashCommand = false;
     message.answerCommand = (content) => {
-      message.channel.send(content);
+      return message.channel.send(content);
     }
   }
 

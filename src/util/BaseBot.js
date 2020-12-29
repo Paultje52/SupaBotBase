@@ -30,6 +30,8 @@ class BaseBot {
     this.aliases = new Map();
 
     this._dir = dir;
+    this._messageFunctions = {};
+    this._messageHandlers = [];
     this.config = {};
 
     this.loadToken(token);
@@ -265,6 +267,27 @@ class BaseBot {
    */
   createDatabase(name = "database.sqlite") {
     this.database = new Database(name);
+  }
+
+  /**
+   * @method addMessageFunction
+   * @description Add a function to the message object
+   * @param {String} name The name of the function (message.<name>)
+   * @param {Function} func The function to execute
+   * @returns {undefined}
+   */
+  addMessageFunction(name, func) {
+    this._messageFunctions[name] = func;
+  }
+
+  /**
+   * @method addMessageHandler
+   * @description Execute code in the main message handler
+   * @param {Function} func The function to execute. If the function returns false, the bot won't handle the message 
+   * @returns {undefined}
+   */
+  addMessageHandler(func) {
+    this._messageHandlers.push(func);
   }
 
   /**
