@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/Paultje52/BaseBot#readme",
   "dependencies": {
+    "better-sqlite3": "^7.1.2",
     "discord.js": "12.5.1"
   }
 }

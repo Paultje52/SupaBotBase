@@ -1,6 +1,7 @@
 const { existsSync, readFileSync, promises: {access, readdir } } = require("fs");
 const { resolve, join } = require("path");
 const { Client } = require("discord.js");
+const Database = require("./Database.js");
 
 /**
  * Interface for the BaseBot Options
@@ -102,6 +103,7 @@ class BaseBot {
       let f = new (require(file)); // Require the function file and construct the class
       let name = await f.getName(); // Get the name of the class
       f.main = this; // Set "main" to the main class instance
+      f.client = this.client; // Set "client" to the discord.js client
       if (f.beforeLoad) await f.beforeLoad(); // Execute beforeLoad function if there is one.
       // Bind the function to the main class
       this[name] = (...args) => {
@@ -143,6 +145,7 @@ class BaseBot {
       let e = new (require(event)); // Require the event file and construct the class
       let name = await e.getEvent(); // Get the name of the event
       e.main = this; // Sets "main" to the main class instance
+      e.client = this.client; // Set "client" to the discord.js client
       if (e.beforeLoad) await e.beforeLoad(); // Execute beforeLoad function if there is one.
       // The function for the event
       let f = (...args) => {
@@ -252,6 +255,16 @@ class BaseBot {
    */
   mountMessageHandler() {
     this.loadEvent(join(__dirname, "MessageHandler.js"));
+  }
+
+  /**
+   * @method createDatabase
+   * @description Creates a database for the bot
+   * @param {String} [name] The name of the database
+   * @returns {Promise} Promise is resolved when the database is created and loaded!
+   */
+  createDatabase(name = "database.sqlite") {
+    this.database = new Database(name);
   }
 
   /**
