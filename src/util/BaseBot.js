@@ -29,6 +29,7 @@ class BaseBot {
     this.aliases = new Map();
 
     this._dir = dir;
+    this.config = {};
 
     this.loadToken(token);
   }
@@ -245,12 +246,23 @@ class BaseBot {
   }
 
   /**
+   * @method mountMessageHandler
+   * @private
+   * @description Mounts the message handler
+   */
+  mountMessageHandler() {
+    this.loadEvent(join(__dirname, "MessageHandler.js"));
+  }
+
+  /**
    * @method start
    * @description Starts the bot
    * @async
    * @returns The return value of discord.js' client#login method.
    */
   async start() {
+    // Mount the onmessage evemt
+    this.mountMessageHandler();
     // Start the discord.js client!
     return this.client.login(this.token);
   }
