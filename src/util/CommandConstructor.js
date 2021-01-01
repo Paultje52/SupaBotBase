@@ -7,6 +7,18 @@ module.exports = class CommandConstructor {
     this.setSlashCommandType("shown");
   }
 
+  /**
+   * @interface HelpInterface
+   * @property {string} name The name of the command
+   * @property {string} [description] The description of the command
+   * @property {string} [usage] The usage of the command, use %PREFIX% for prefix and %CMD% for command (or possible alias)
+   * @property {string} [category] The category of the command, for sorting
+   */
+
+  /**
+   * @method setHelp
+   * @param {HelpInterface} 
+   */
   setHelp({
     name,
     description = "No description provided",
@@ -17,7 +29,16 @@ module.exports = class CommandConstructor {
   }
 
   setArgs({
-    args = [{name: "name", test: () => true}],
+    args = [
+      /*
+        {
+          name: "NAME",
+          description: "DESCRIPTION",
+          type: 0,
+          required: true
+        }
+      */
+    ],
     examples = ["%PREFIX%%CMD%"]
   } = {}) {
     if (typeof examples !== "object") examples = [examples];
@@ -25,11 +46,19 @@ module.exports = class CommandConstructor {
     this.argsTest = args
   }
 
+  /**
+   * @method setAliases
+   * @param  {...string} aliases The aliases
+   */
   setAliases(...aliases) {
     if (!aliases) aliases = [];
     this.aliases = aliases;
   }
 
+  /**
+   * @method setSlashCommandsEnabled
+   * @param {Boolean} value If slash command support is enabled for this command
+   */
   setSlashCommandsEnabled(value) {
     this.slashCommands = value;
   }
