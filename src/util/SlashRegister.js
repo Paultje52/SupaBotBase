@@ -32,6 +32,7 @@ module.exports = class SlashRegister {
   getBotCommands() {
     let parsed = [];
     this.commands.forEach((command) => {
+      if (!command.slashCommands) return;
       parsed.push({
         name: command.help.name,
         description: command.help.description
@@ -114,4 +115,5 @@ module.exports = class SlashRegister {
 
     }
   }
+
 }

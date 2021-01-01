@@ -7,12 +7,15 @@ module.exports = class MessageHandler {
   async onExecute(message) {
     if (this.main.config.disable && this.main.config.disable.message) return;
     if (message.author.bot) return;
-
+    
+    this.addSlashCommandSupportData(message);
     if (this.main.database && this.main.config.database) this.loadSettings(message);
+
     this.setMessageFunctions(message);
     if (!await this.checkMessageHandles(message)) return;
 
     let prefix = this.getFullPrefix(message);
+    message.prefix = prefix;
     if (!message.content.toLowerCase().startsWith(prefix)) return;
 
     let {args, command} = this.getMessageAndArgs(message.content, prefix);
@@ -21,7 +24,6 @@ module.exports = class MessageHandler {
 
     // TODO: Check security
 
-    this.addSlashCommandSupportData(message);
     cmdFile.onExecute(message, args);
   }
 

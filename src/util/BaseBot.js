@@ -261,6 +261,16 @@ class BaseBot {
   }
 
   /**
+   * @method mountSlashCommandHandler
+   * @private
+   * @description Mounts the slash command handler
+   */
+  mountSlashCommandHandler() {
+    if (this.config && this.config.disable && this.config.disable.slash) return;
+    this.loadEvent(join(__dirname, "SlashCommandHandler.js"));
+  }
+
+  /**
    * @method createDatabase
    * @description Creates a database for the bot
    * @param {String} [name] The name of the database
@@ -300,6 +310,8 @@ class BaseBot {
   async start() {
     // Mount the onmessage event
     this.mountMessageHandler();
+    // Mount the slash command event listener
+    this.mountSlashCommandHandler();
     // Start the discord.js client!
     return this.client.login(this.token);
   }

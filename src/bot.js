@@ -20,7 +20,7 @@ const { MessageEmbed } = require("discord.js");
   });
   // Add message handler
   bot.addMessageHandler((message) => {
-    console.log(1);
+    // console.log(1);
     // Return false > Stop message handling.
   });
   // Start the bot

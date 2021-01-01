@@ -3,6 +3,8 @@ module.exports = class CommandConstructor {
     this.setHelp({name: "???"});
     this.setArgs();
     this.setAliases();
+    this.setSlashCommandsEnabled(true);
+    this.setSlashCommandType("shown");
   }
 
   setHelp({
@@ -26,6 +28,18 @@ module.exports = class CommandConstructor {
   setAliases(...aliases) {
     if (!aliases) aliases = [];
     this.aliases = aliases;
+  }
+
+  setSlashCommandsEnabled(value) {
+    this.slashCommands = value;
+  }
+
+  /**
+   * @method setSlashCommandType
+   * @param {("hidden"|"shown")} type Hide or show the response to a slash command
+   */
+  setSlashCommandType(type = "shown") {
+    this.slashCommandType = type;
   }
 
   // TODO: Test stuff
