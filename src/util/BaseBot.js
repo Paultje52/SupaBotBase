@@ -2,6 +2,7 @@ const { existsSync, readFileSync, promises: {access, readdir } } = require("fs")
 const { resolve, join } = require("path");
 const { Client } = require("discord.js");
 const Database = require("./Database.js");
+const SlashRegister = require("./SlashRegister.js");
 
 /**
  * Interface for the BaseBot Options
@@ -301,6 +302,25 @@ class BaseBot {
     this.mountMessageHandler();
     // Start the discord.js client!
     return this.client.login(this.token);
+  }
+
+  async registerSlashCommands(testGuild = false) {
+    console.log(`\x1b[36m==[Checking slash commands]==\x1b[0m`);
+
+    let slashCommands = new SlashRegister(this.commands, this);
+
+    let { notRegistered, needChanging, canBeDeleted } = slashCommands.compareCommands(
+      await slashCommands.getCurrentCommand(testGuild),
+      slashCommands.getBotCommands()
+    );
+
+    await Promise.all([
+      slashCommands.registerNewCommands(notRegistered, testGuild),
+      slashCommands.changeCommands(needChanging, testGuild),
+      slashCommands.deleteCommands(canBeDeleted, testGuild)
+    ]);
+
+    console.log(`\x1b[36m==[${notRegistered.length} new commands registered, ${needChanging.length} commands changed and ${canBeDeleted.length} commands deleted]==\x1b[0m`);
   }
 }
 

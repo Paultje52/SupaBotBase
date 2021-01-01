@@ -6,7 +6,8 @@ module.exports = class Ping extends CommandConstructor {
     super();
 
     this.setHelp({
-      name: "ping"
+      name: "ping",
+      description: "Test my ping"
     });
     this.setAliases("p", "pingpong");
   }
@@ -14,9 +15,22 @@ module.exports = class Ping extends CommandConstructor {
   async onExecute(message) {
     let start = Date.now();
     let msg = await message.channel.send(message.embed().setDescription("🏓"));
-    msg.edit(message.embed()
-      .setDescription(`🏓 ${Math.round(Date.now()-start-this.client.ws.ping)}ms\n💙 ${Math.round(this.client.ws.ping)}ms`)
-    );
+
+    let ping = Math.round(Date.now()-start-this.client.ws.ping);
+    let ws = Math.round(this.client.ws.ping);
+
+    if (message.isSlashCommand) {
+      msg.delete();
+      message.answerCommand(message.embed()
+        .setDescription(`🏓 ${ws}ms\n💙 ${ping}ms`)
+      );
+
+    } else {
+      msg.edit(message.embed()
+        .setDescription(`🏓 ${ws}ms\n💙 ${ping}ms`)
+      );
+      
+    }
   }
 
 }
