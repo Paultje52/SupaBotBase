@@ -298,12 +298,19 @@ class BaseBot {
    * @returns The return value of discord.js' client#login method.
    */
   async start() {
-    // Mount the onmessage evemt
+    // Mount the onmessage event
     this.mountMessageHandler();
     // Start the discord.js client!
     return this.client.login(this.token);
   }
 
+  /**
+   * @method registerSlashCommands
+   * @async
+   * @returns {undefined}
+   * @description Checks the bot commands and registered slash commands. New commands will be registered, changed values of commands will be changed and commands no longer in the code will be deleted. When in development, add your testguild ID as the parameter to instantly see the changes!
+   * @param {String|Undefined} testGuild A testguild ID
+   */
   async registerSlashCommands(testGuild = false) {
     console.log(`\x1b[36m==[Checking slash commands]==\x1b[0m`);
 
