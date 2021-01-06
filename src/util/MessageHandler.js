@@ -22,9 +22,124 @@ module.exports = class MessageHandler {
     let cmdFile = this.getCommand(command);
     if (!cmdFile) return;
 
+    if (cmdFile.args.length !== 0) {
+      let example = this.getCommandExample(cmdFile, prefix);
+      let usage = this.parseCommandExample(cmdFile.help.usage, prefix, cmdFile.help.name);
+      args = await this.checkValidArgs(cmdFile.args, args, message, example, message.guild, usage);
+      if (!args) return;
+    }
+
     // TODO: Check security
 
     cmdFile.onExecute(message, args);
+  }
+
+  async checkValidArgs(cmd, user, message, example, guild, usage) {
+    let parsed = [];
+
+    let curUserArg = user.shift();
+    let curArg = cmd.shift();
+
+    if (curUserArg) {
+      if (curArg.type === 1 || curArg.type === 2) {
+        if (curArg.name.toLowerCase() === curUserArg.toLowerCase()) {
+          let res = await this.checkValidArgs(curArg.options, user, message, example, guild, usage);
+          if (res === false || `${res}`.includes("false")) return false;
+          parsed.push(...res);
+
+        } else if (cmd.length !== 0) {
+          let res = await this.checkValidArgs(cmd, user, message, example, guild, usage);
+          if (res === false || `${res}`.includes("false")) return false;
+          parsed.push(...res);
+        }
+      } else {
+        if (curArg.type === 3) parsed.push(curUserArg);
+        else if (curArg.type === 4) { // Number
+          let n = Number(curArg);
+          if (!isNaN(n)) parsed.push(n);
+
+        } else if (curArg.type === 5) { // True/false
+          if (curArg.toLowerCase().includes("true") || curArg.toLowerCase().includes("yes") || curArg.toLowerCase().includes("on")) parsed.push(true);
+          else if (curArg.toLowerCase().includes("false") || curArg.toLowerCase().includes("no") || curArg.toLowerCase().includes("off")) parsed.push(false);
+
+        } else if (curArg.type === 6) { // User
+          curUserArg = this.mentionToID(curUserArg);
+          if (curUserArg) {
+            let user = await guild.members.fetch(curUserArg);
+            if (user) parsed.push(user);
+          }
+
+        } else if (curArg.type === 7) { // Channel
+          curUserArg = this.mentionToID(curUserArg);
+          if (curUserArg) {
+            let channel = guild.channels.cache.get(curUserArg);
+            if (channel) parsed.push(channel);
+          }
+
+        } else if (curArg.type === 8) { // Role
+          curUserArg = this.mentionToID(curUserArg);
+          if (curUserArg) {
+            let role = await guild.roles.fetch(curUserArg);
+            if (role) parsed.push(role);
+          }
+        }
+
+        let res = await this.checkValidArgs(cmd, user, message, example, guild, usage);
+        if (res === false || `${res}`.includes("false")) return false;
+        parsed.push(...res);
+      }
+    }
+
+    if (parsed.length === 0 && !curArg.required) return [];
+    
+    cmd.unshift(curArg);
+
+    if (parsed.length === 0) {
+      parsed = false;
+      let requiredSubs = [];
+      let requiredOthers = [];
+
+      let typeToName = {
+        4: "a valid number",
+        5: "yes/no",
+        6: "a user (mention or ID)",
+        7: "a channel (mention or ID)",
+        8: "a role (mention or ID)"
+      }
+      cmd.forEach((a) => {
+        if (a.type === 1 || a.type === 2) requiredSubs.push(`**${a.name}**\n> _${a.description}_\n`);
+        else if (a.required) requiredOthers.push(`**${a.name}** (needs to be ${typeToName[a.type]})\n> _${a.description}_\n`);
+      });
+      
+      if (requiredSubs.length > 0) requiredSubs = `You have to choose between the following subcommands.\n> ${requiredSubs.join("\n> ")}`;
+      else requiredSubs = "";
+      if (requiredOthers.length > 0) {
+        if (requiredSubs) requiredOthers = `\nOr between the other options.\n> ${requiredOthers.join("\n> ")}`;
+        else requiredOthers = `You have to choose between the following options.\n> ${requiredOthers.join("\n> ")}`
+      } else requiredOthers = "";
+
+      message.channel.send(message.embed()
+        .setTitle("Wrong arguments!")
+        .setDescription(`Usage: \`${usage}\`\n\n${requiredSubs}${requiredOthers}`)
+        .setFooter(`Example: ${example}`)
+      );
+    }
+
+    return parsed;
+  }
+
+  mentionToID(i) {
+    let res = i.split("<@").join("").split(">").join("").split("!").join("").split("&").join("").split("#").join("");
+    return isNaN(Number(res)) ? false : res;
+  }
+
+  parseCommandExample(string, prefix, name) {
+    return string.replace("%PREFIX%", prefix).replace("%CMD%", name)
+  }
+
+  getCommandExample(cmdFile, prefix) {
+    let example = cmdFile.examples[Math.floor(Math.random()*cmdFile.examples.length)];
+    return this.parseCommandExample(example, prefix, cmdFile.help.name);
   }
 
   async checkMessageHandles(message) {

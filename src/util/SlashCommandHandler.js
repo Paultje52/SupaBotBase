@@ -32,7 +32,48 @@ module.exports = class MessageHandler {
     this.setMessageFunctions(message);
     if (!await this.checkMessageHandles(message)) return;
     
-    cmd.onExecute(message);
+    let args = [];
+    if (packet.d.data.options) args = await this.fixOptions(packet.d.data.options, cmd.args, message.guild);
+
+    cmd.onExecute(message, args);
+  }
+
+  async fixOptions(options, commandArgs, guild) {
+    let args = [];
+
+    if (options.length === 1) options = options[0];
+    else {
+      for (let i in options) {
+        let value = await this.getProperValue(commandArgs[i].type, options[i].value, guild);
+        args.push(value);
+      }
+      return args;
+    }    
+
+    for (let possibleArg of commandArgs) {
+      if (options.name !== possibleArg.name) continue;
+
+      if ([1, 2].includes(possibleArg.type)) {
+        // Subcommand
+        args.push(possibleArg.name, 
+          ...(await this.fixOptions(options.options, possibleArg.options, guild))
+        );
+
+      } else {
+        let value = await this.getProperValue(possibleArg.type, options.value, guild);
+        args.push(value);
+      }
+    }
+
+    return args;
+
+  }
+
+  async getProperValue(type, value, guild) {
+    if ([3, 4, 5].includes(type)) return value;
+    if (type === 6) return await guild.members.fetch(value);
+    if (type === 7) return guild.channels.cache.get(value);
+    if (type === 8) return await guild.roles.fetch(value);
   }
 
   async checkMessageHandles(message) {

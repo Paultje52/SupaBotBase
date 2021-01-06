@@ -5,6 +5,7 @@ module.exports = class CommandConstructor {
     this.setAliases();
     this.setSlashCommandsEnabled(true);
     this.setSlashCommandType("shown");
+    this.setExamples();
   }
 
   /**
@@ -25,25 +26,24 @@ module.exports = class CommandConstructor {
     usage = "%PREFIX%%CMD%",
     category = "Unknown"
   } = {}) {
-    this.help = {name, description, usage, category, examples: this.help ? this.help.examples ? this.help.examples : [] : []};
+    this.help = {name, description, usage, category};
   }
 
-  setArgs({
-    args = [
-      /*
-        {
-          name: "NAME",
-          description: "DESCRIPTION",
-          type: 0,
-          required: true
-        }
-      */
-    ],
-    examples = ["%PREFIX%%CMD%"]
-  } = {}) {
-    if (typeof examples !== "object") examples = [examples];
-    this.help.examples = examples;
-    this.argsTest = args
+  /**
+   * @method setArgs
+   * @param  {...ArgumentInterface} args The arguments
+   */
+  setArgs(...args) {
+    this.args = args;
+  }
+
+  /**
+   * @method setExamples
+   * @param  {...String} examples The examples, use %PREFIX% for the prefix
+   */
+  setExamples(...examples) {
+    if (examples.length === 0) examples = ["%PREFIX%%CMD%"];
+    this.examples = examples;
   }
 
   /**

@@ -1,4 +1,5 @@
 const fetch = require("node-fetch");
+const _ = require("lodash");
 
 module.exports = class SlashRegister {
   constructor(commands, BaseBot) {
@@ -35,7 +36,9 @@ module.exports = class SlashRegister {
       if (!command.slashCommands) return;
       parsed.push({
         name: command.help.name,
-        description: command.help.description
+        description: command.help.description,
+        slashCommands: command.slashCommands,
+        args: command.args
       });
     });
     return parsed;
@@ -46,9 +49,12 @@ module.exports = class SlashRegister {
     let needChanging = [];
     let canBeDeleted = [];
     bot.forEach((cmd) => {
+      if (!cmd.slashCommands) return;
+
       let c = registered.find((c) => c.name.toLowerCase() === cmd.name.toLowerCase());
       if (!c) return notRegistered.push(cmd);
-      if (c.description !== cmd.description) {
+
+      if (c.description !== cmd.description || (cmd.args.length !== 0 && !_.isEqual(cmd.args, c.options))) {
         cmd.id = c.id;
         needChanging.push(cmd);
       }
@@ -71,7 +77,8 @@ module.exports = class SlashRegister {
         method: "POST",
         body: JSON.stringify({
           name: command.name,
-          description: command.description
+          description: command.description,
+          options: command.args
         })
       });
 
@@ -95,7 +102,8 @@ module.exports = class SlashRegister {
         method: "PATCH",
         body: JSON.stringify({
           name: command.name,
-          description: command.description
+          description: command.description,
+          options: command.args
         })
       });
 
