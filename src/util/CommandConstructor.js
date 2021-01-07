@@ -71,5 +71,34 @@ module.exports = class CommandConstructor {
     this.slashCommandType = type;
   }
 
-  // TODO: Test stuff
+  /**
+   * @method setRequiredPermissions
+   * @param {Object} param0 An object with two parameters, bot and user, each a string array with the required permissions for that target
+   */
+  setRequiredPermissions({bot = [], user = []} = {}) {
+    if (!this.security) this.security = {};
+    if (!this.security.requiredPermissions) this.security.requiredPermissions = {};
+    this.security.requiredPermissions.bot = bot;
+    this.security.requiredPermissions.user = user;
+  }
+
+  /**
+   * @method setRestriction
+   * @param {("user"|"channel"|"guild")} type The type of the restriction
+   * @param {("specific"|"database")} valueType Where the restricted value is queried from
+   * @param {String|Array<String>} value The value. String if database and array if specific.
+   */
+  setRestriction(type = "user", valueType = "specific", value = []) {
+    if (type !== "user" && type !== "channel" && type !== "guild") throw new Error("Restriction type can only be user, guild or channel!");
+    if (valueType !== "specific" && valueType !== "database") throw new Error("The value type can only be \"specific\" or \"database\".");
+    if (typeof value !== "string" && typeof value !== "object") throw new Error("The value can only be a string or an array.");
+    if (!this.security) this.security = {};
+    if (!this.security.restriction) this.security.restriction = {};
+    this.security.restriction[type] = [valueType, value];
+  }
+
+  setPermissionChecks(...checks) {
+    if (!this.security) this.security = {};
+    this.security.checks = checks;
+  }
 }

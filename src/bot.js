@@ -23,6 +23,9 @@ const { MessageEmbed } = require("discord.js");
     // console.log(1);
     // Return false > Stop message handling.
   });
+
+  bot.setPermissionCheck("test", (_message, _args) => {});
+
   // Start the bot
   console.log("Starting bot...");
   await bot.start();

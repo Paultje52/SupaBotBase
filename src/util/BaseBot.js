@@ -34,6 +34,7 @@ class BaseBot {
     this._messageFunctions = {};
     this._messageHandlers = [];
     this.config = {};
+    this.permissionChecks = {};
 
     this.loadToken(token);
   }
@@ -340,6 +341,18 @@ class BaseBot {
     ]);
 
     console.log(`\x1b[36m==[${notRegistered.length} new commands registered, ${needChanging.length} commands changed and ${canBeDeleted.length} commands deleted]==\x1b[0m`);
+  }
+
+  /**
+   * 
+   * @method setPermissionCheck
+   * @async
+   * @returns {undefined}
+   * @param {String} name The function name
+   * @param {Function} func The function, with two parameters: message and args
+   */
+  setPermissionCheck(name, func) {
+    this.permissionChecks[name] = func;
   }
 }
 

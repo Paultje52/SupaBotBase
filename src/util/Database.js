@@ -21,12 +21,12 @@ module.exports = class Database {
 
   get(key) {
     let res = this._getStatement.get(key);
-    return res ? res.value : undefined;
+    return res ? JSON.parse(res.value) : undefined;
   }
 
   set(key, value) {
-    if (!this.get(key)) this._insertStatement.run(key, value);
-    else this._updateStatement.run(value, key);
+    if (!this.get(key)) this._insertStatement.run(key, JSON.stringify(value));
+    else this._updateStatement.run(JSON.stringify(value), key);
   }
 
   delete(key) {
