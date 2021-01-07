@@ -1,4 +1,4 @@
-const BaseBot = require("./util/BaseBot");
+const BaseBot = require("../");
 const { MessageEmbed } = require("discord.js");
 
 (async () => {

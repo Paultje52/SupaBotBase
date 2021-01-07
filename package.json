@@ -1,12 +1,8 @@
 {
   "name": "basebot",
   "version": "1.0.0",
-  "description": "An easy-to-use Discord Bot base with messages and slash command support, made for discord.js.",
-  "main": "src/bot.js",
-  "scripts": {
-    "test": "nodemon bot.js -e js",
-    "start": "npm i && cd src && node bot"
-  },
+  "description": "An easy-to-use Discord.JS Bot base with messages and slash command support.",
+  "main": "src/BaseBot.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Paultje52/BaseBot.git"
