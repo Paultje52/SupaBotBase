@@ -1,4 +1,4 @@
-const CommandConstructor = require(`${process.cwd()}/util/CommandConstructor.js`);
+const CommandConstructor = require(`../../`).CommandConstructor;
 
 let permissionList = {
   CREATE_INSTANT_INVITE: "Create invites",

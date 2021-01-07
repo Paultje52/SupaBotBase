@@ -356,4 +356,5 @@ class BaseBot {
   }
 }
 
-module.exports = BaseBot;
+module.exports = exports = BaseBot;
+exports.CommandConstructor = require("./CommandConstructor.js");
