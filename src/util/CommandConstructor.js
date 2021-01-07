@@ -78,8 +78,8 @@ module.exports = class CommandConstructor {
   setRequiredPermissions({bot = [], user = []} = {}) {
     if (!this.security) this.security = {};
     if (!this.security.requiredPermissions) this.security.requiredPermissions = {};
-    this.security.requiredPermissions.bot = bot;
-    this.security.requiredPermissions.user = user;
+    this.security.requiredPermissions.bot = bot || [];
+    this.security.requiredPermissions.user = user || [];
   }
 
   /**

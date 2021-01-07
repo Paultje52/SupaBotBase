@@ -24,6 +24,11 @@ module.exports = class MessageHandler {
       author: packet.d.member.user,
       tts: false
     }, channel);
+    Object.defineProperty(message, "member", {
+      value: await message.guild.members.fetch(message.author.id),
+      writable: false 
+    });
+
     this.addSlashCommandSupportData(message, this.client.user.id, packet.d.token, packet.d.id);
     this.loadSettings(message);
     
@@ -35,7 +40,84 @@ module.exports = class MessageHandler {
     let args = [];
     if (packet.d.data.options) args = await this.fixOptions(packet.d.data.options, cmd.args, message.guild);
 
+    if (cmd.security && !(await this.checkSecurity(cmd, message, args))) return;
+
     cmd.onExecute(message, args);
+  }
+
+  async checkSecurity(cmdFile, message, args) {
+    if (!cmdFile.security) return true;
+
+    if (cmdFile.security.requiredPermissions && !(await this.checkRequiredPermissions(cmdFile.security.requiredPermissions, message))) return false;
+    if (cmdFile.security.restriction && !(this.checkAllRestrictions(cmdFile.security.restriction, message))) return false;
+    if (cmdFile.security.checks && !(this.individualChecks(cmdFile.security.checks, message, args))) return false;
+
+    return true;
+  }
+
+  individualChecks(checks, message, args) {
+    let confirm = true;
+
+    for (let check of checks) {
+      if (!this.main.permissionChecks[check]) continue;
+      let res = this.main.permissionChecks[check](message, args);
+      if (res === false) {
+        confirm = false;
+        break;
+      }
+      if (typeof res === "string" || res instanceof MessageEmbed) {
+        message.answerCommand(res);
+        confirm = false;
+        break;
+      }
+    }
+
+    return confirm;
+  }
+
+  checkAllRestrictions(restrictions, message) {
+    if (restrictions.user && !this.checkRestriction(restrictions.user, message.author.id)) return false;
+    if (restrictions.channel && !this.checkRestriction(restrictions.channel, message.channel.id)) return false;
+    if (restrictions.guild && !this.checkRestriction(restrictions.guild, message.guild.id)) return false;
+    return true;
+  }
+
+  checkRestriction(restriction, id) {
+    if (restriction[0] === "specific") {
+      if (restriction[1] !== id && !restriction[1].includes(id)) return false;
+      return true;
+    }
+
+    let data = this.main.database.get(restriction[1]);
+    if (data && typeof data === "object" && !data.includes(id)) return false;
+    return true;
+  }
+
+  async checkRequiredPermissions({bot = [], user = []}, message) {
+    let missing = this.getMissingPermissions(bot, await message.guild.members.fetch(this.client.user.id), message.channel);
+    if (missing.length > 0) {
+      message.answerCommand(`Can't run this command. I'm missing the following permissions.\n- ${missing.join("\n- ")}`);
+      return false;
+    }
+
+    missing = this.getMissingPermissions(user, message.member, message.channel);
+    if (missing.length > 0) {
+      message.answerCommand(`Can't run this command. You're missing the following permissions.\n- ${missing.join("\n- ")}`);
+      return false;
+    }
+
+    return true;
+  }
+
+  getMissingPermissions(list, member, channel) {
+    let res = [];
+
+    let permissions = member.permissionsIn(channel).serialize();
+    list.forEach((perm) => {
+      if (!permissions[perm]) res.push(perm);
+    });
+
+    return res;
   }
 
   async fixOptions(options, commandArgs, guild) {

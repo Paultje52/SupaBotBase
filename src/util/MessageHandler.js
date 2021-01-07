@@ -73,7 +73,6 @@ module.exports = class MessageHandler {
   }
 
   checkRestriction(restriction, id) {
-    console.log(restriction, id);
     if (restriction[0] === "specific") {
       if (restriction[1] !== id && !restriction[1].includes(id)) return false;
       return true;
