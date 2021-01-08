@@ -358,3 +358,4 @@ class SupaBotBase {
 
 module.exports = exports = SupaBotBase;
 exports.CommandConstructor = require("./CommandConstructor.js");
+exports.version = require("../package.json").version;
