@@ -8,15 +8,15 @@ module.exports = class Database {
   }
 
   _ensureTable() {
-    this.db.prepare("CREATE TABLE IF NOT EXISTS `BaseBotData` (`key` TEXT, `value` TEXT)")
+    this.db.prepare("CREATE TABLE IF NOT EXISTS `SupaBotBaseData` (`key` TEXT, `value` TEXT)")
       .run();
   }
 
   _prepareStatements() {
-    this._getStatement = this.db.prepare("SELECT * FROM `BaseBotData` WHERE `key` = ?");
-    this._insertStatement = this.db.prepare("INSERT INTO `BaseBotData` (`key`, `value`) VALUES (?, ?)");
-    this._updateStatement = this.db.prepare("UPDATE `BaseBotData` SET `value` = ? WHERE `key` = ?")
-    this._deleteStatement = this.db.prepare("DELETE FROM `BaseBotData` WHERE `key` = ?");
+    this._getStatement = this.db.prepare("SELECT * FROM `SupaBotBaseData` WHERE `key` = ?");
+    this._insertStatement = this.db.prepare("INSERT INTO `SupaBotBaseData` (`key`, `value`) VALUES (?, ?)");
+    this._updateStatement = this.db.prepare("UPDATE `SupaBotBaseData` SET `value` = ? WHERE `key` = ?")
+    this._deleteStatement = this.db.prepare("DELETE FROM `SupaBotBaseData` WHERE `key` = ?");
   }
 
   get(key) {

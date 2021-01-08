@@ -1,2 +1,2 @@
-# BaseBot
-An easy-to-use Discord Bot base with messages and slash command support, made for discord.js.
+# SupaBotBase
+An easy-to-use Discord.js Bot base with messages and slash command support.

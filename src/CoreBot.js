@@ -5,23 +5,23 @@ const Database = require("./Database.js");
 const SlashRegister = require("./SlashRegister.js");
 
 /**
- * Interface for the BaseBot Options
- * @interface BaseBotOptions
+ * Interface for the SupaBotBase Options
+ * @interface Options
  * 
  * @property {string} [dir] The current dir. If not provided, it will be the process dir.
- * @property {string} [token] The bot token. If not provided, BaseBot will grab the token from "token.txt" in the main dir.
+ * @property {string} [token] The bot token. If not provided,  will grab the token from "token.txt" in the main dir.
  * @property {object} [clientOptions] The discord.js options for the bot client.
  */
 
 /**
- * @name BaseBot
+ * @name 
  * @class
- * The main BaseBot Class
+ * The main SupaBotBase Class
  */
-class BaseBot {
+class SupaBotBase {
   /**
-   * Create a BaseBot instance
-   * @param {BaseBotOptions} options The options for the base
+   * Create a  instance
+   * @param {Options} options The options for the base
    */
   constructor({dir = process.cwd(), token = "", clientOptions = {}} = {}) {
     this.client = new Client(clientOptions);
@@ -43,7 +43,7 @@ class BaseBot {
    * @method loadToken
    * @description Loads the bot token
    * @returns {undefined}
-   * @param {string} [token] The bot token. If not provided, BaseBot will grab the token from "token.txt" in the main dir.
+   * @param {string} [token] The bot token. If not provided,  will grab the token from "token.txt" in the main dir.
    */
   loadToken(token = false) {
     if (!token) {
@@ -356,5 +356,5 @@ class BaseBot {
   }
 }
 
-module.exports = exports = BaseBot;
+module.exports = exports = SupaBotBase;
 exports.CommandConstructor = require("./CommandConstructor.js");

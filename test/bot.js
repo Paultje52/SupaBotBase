@@ -1,11 +1,11 @@
-const BaseBot = require("../");
+const SupaBotBase = require("../");
 const { MessageEmbed } = require("discord.js");
 
 (async () => {
   console.log(`\x1b[32m\x1b[1mLoading bot Bot...\x1b[0m`);
 
   // Create a new bot instance
-  let bot = new BaseBot({
+  let bot = new SupaBotBase({
     dir: __dirname
   });
   // Load everything
@@ -16,7 +16,7 @@ const { MessageEmbed } = require("discord.js");
   bot.createDatabase("database.sqlite");
   // Add message function
   bot.addMessageFunction("embed", () => {
-    return new MessageEmbed().setFooter("©BaseBot").setColor("#2f3136");
+    return new MessageEmbed().setFooter("©SupaBotBase").setColor("#2f3136");
   });
   // Add message handler
   bot.addMessageHandler((message) => {

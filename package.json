@@ -1,18 +1,18 @@
 {
-  "name": "basebot",
+  "name": "supabotbase",
   "version": "1.0.0",
   "description": "An easy-to-use Discord.JS Bot base with messages and slash command support.",
-  "main": "src/BaseBot.js",
+  "main": "src/SupaBotBase.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Paultje52/BaseBot.git"
+    "url": "git+https://github.com/Paultje52/SupaBotBase.git"
   },
   "author": "Paultje52",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Paultje52/BaseBot/issues"
+    "url": "https://github.com/Paultje52/SupaBotBase/issues"
   },
-  "homepage": "https://github.com/Paultje52/BaseBot#readme",
+  "homepage": "https://github.com/Paultje52/SupaBotBase#readme",
   "dependencies": {
     "better-sqlite3": "^7.1.2",
     "discord.js": "12.5.1",

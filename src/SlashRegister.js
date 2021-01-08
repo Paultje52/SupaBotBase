@@ -2,9 +2,9 @@ const fetch = require("node-fetch");
 const _ = require("lodash");
 
 module.exports = class SlashRegister {
-  constructor(commands, BaseBot) {
-    if (!BaseBot.client) throw new Error("Client isn't ready yet, please wait!");
-    this.main = BaseBot;
+  constructor(commands, SupaBotBase) {
+    if (!SupaBotBase.client) throw new Error("Client isn't ready yet, please wait!");
+    this.main = SupaBotBase;
     this.commands = commands;
   }
 

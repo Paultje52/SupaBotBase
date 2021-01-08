@@ -1,4 +1,4 @@
-const CommandConstructor = require(`../../`).CommandConstructor;
+const CommandConstructor = require(`../../src/SupaBotBase`).CommandConstructor;
 
 let permissionList = {
   CREATE_INSTANT_INVITE: "Create invites",

@@ -1,4 +1,4 @@
-const CommandConstructor = require(`../../`).CommandConstructor;
+const CommandConstructor = require(`../../src/SupaBotBase`).CommandConstructor;
 
 module.exports = class Ping extends CommandConstructor {
 
