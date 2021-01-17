@@ -14,9 +14,9 @@
   },
   "homepage": "https://github.com/Paultje52/SupaBotBase#readme",
   "dependencies": {
-    "better-sqlite3": "^7.1.2",
+    "better-sqlite3": "7.1.2",
     "discord.js": "12.5.1",
-    "fetch": "^1.1.0",
-    "lodash": "^4.17.20"
+    "lodash": "4.17.20",
+    "node-fetch": "2.6.1"
   }
 }
