@@ -44,6 +44,7 @@ class SupaBotBase {
    * @description Loads the bot token
    * @returns {undefined}
    * @param {string} [token] The bot token. If not provided,  will grab the token from "token.txt" in the main dir.
+   * @private
    */
   loadToken(token = false) {
     if (!token) {
