@@ -110,7 +110,7 @@ module.exports = class MessageHandler {
     return res;
   }
 
-  async checkValidArgs(cmd, user, message, example, guild, usage) {
+  async checkValidArgs(cmd, user, message, example, guild, usage, firstArgCheck = true) {
     let parsed = [];
 
     let curUserArg = user.shift();
@@ -119,14 +119,14 @@ module.exports = class MessageHandler {
     if (curUserArg) {
       if (curArg.type === 1 || curArg.type === 2) {
         if (curArg.name.toLowerCase() === curUserArg.toLowerCase()) {
-          let res = await this.checkValidArgs(curArg.options, user, message, example, guild, usage);
+          let res = await this.checkValidArgs(curArg.options, user, message, example, guild, usage, false);
           if (res === false || `${res}`.includes("false")) return false;
-          parsed.push(...res);
+          parsed.push(curUserArg.toLowerCase(), ...res);
 
         } else if (cmd.length !== 0) {
-          let res = await this.checkValidArgs(cmd, user, message, example, guild, usage);
+          let res = await this.checkValidArgs(cmd, user, message, example, guild, usage, false);
           if (res === false || `${res}`.includes("false")) return false;
-          parsed.push(...res);
+          parsed.push(curUserArg.toLowerCase(), ...res);
         }
       } else {
         if (curArg.type === 3) parsed.push(curUserArg);
@@ -166,7 +166,7 @@ module.exports = class MessageHandler {
       }
     }
 
-    if (parsed.length === 0 && !curArg.required) return [];
+    if (parsed.length === 0 && ((firstArgCheck || !curArg.required) && ![1, 2].includes(curArg.type))) return [];
     
     cmd.unshift(curArg);
 
