@@ -40,6 +40,16 @@ class SupaBotBase {
   }
 
   /**
+   * @method onError
+   * @description Set a function to call when an error occurred. Return false to stop the default error message to be send.
+   * @returns {undefined}
+   * @param {Function} f The function to call when an error occurred
+   */
+  onError(f = () => {}) {
+    this.errorCallback = f;
+  }
+
+  /**
    * @method loadToken
    * @description Loads the bot token
    * @returns {undefined}

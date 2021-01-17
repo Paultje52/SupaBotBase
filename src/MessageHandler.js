@@ -1,4 +1,5 @@
 const { MessageEmbed } = require("discord.js");
+const randomString = require("random-string");
 module.exports = class MessageHandler {
 
   getEvent() {
@@ -30,7 +31,8 @@ module.exports = class MessageHandler {
       if (!args) return;
     }
 
-    if (!(await this.checkSecurity(cmdFile, message, args))) return;
+    if (cmd.security && !(await this.checkSecurity(cmd, message, args))) return;
+    
     try {
 
       cmdFile.onExecute(message, args).catch((e) => {
@@ -40,6 +42,43 @@ module.exports = class MessageHandler {
     } catch(e) {
       this.onError(e, message, cmdFile);
     }
+  }
+
+  async onError(error, message, cmd) {
+    let errorMessage = `\n\n\x1b[1m[\x1b[31mERROR\x1b[0m\x1b[1m]\x1b[0m SupaBotBase encountered an error while running command \x1b[1m${cmd.help.name}\x1b[0m!\nFile: ${cmd._file}\n\x1b[32mMessage data.\x1b[0m\n- Guild: ${message.guild.name} (${message.guild.id})\n- Channel: ${message.channel.name} (${message.channel.id})\n- Author: ${message.author.tag} (${message.author.id})\n- Message link: ${message.url}\n========[ Content start ]========\n${message.content}\n========[  Content end  ]========\n\n========[ Error Message ]========\n${error.stack}`;
+    console.error(errorMessage);
+
+    if (this.main.errorCallback) {
+      let res = await this.main.errorCallback(error, message, cmd, errorMessage);
+      if (typeof res === "boolean" && !res) return;
+    }
+
+    if (this.main.database) {
+
+      let id = this.generateErrorID();
+      this.main.database.set(`error-${id}`, {
+        message,
+        error,
+        cmd: {
+          help: cmd.help,
+          args: cmd.args,
+          examples: cmd.examples,
+          aliases: cmd.aliases,
+          slashCommands: cmd.slashCommands,
+          slashCommandType: cmd.slashCommandType,
+          security: cmd.security
+        }
+      });
+      message.channel.send(`**Error**\nAn error occurred while trying to run \`${cmd.help.name}\`.\nThis error has been reported with ID **#${id}**`);
+
+    } else message.channel.send(`An error occurred while trying to run this command. The error has been reported!`);
+
+  }
+
+  generateErrorID() {
+    let id = randomString({length: 8});
+    if (this.main.database.get(id)) return this.generateErrorID();
+    return id;
   }
 
   async checkSecurity(cmdFile, message, args) {
