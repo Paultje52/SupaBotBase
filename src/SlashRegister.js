@@ -51,6 +51,7 @@ module.exports = class SlashRegister {
     bot.forEach((cmd) => {
       if (!cmd.slashCommands) return;
 
+      if (registered.code === 50001) throw new Error("Can't register slash commands: Bot isn't allowed!");
       let c = registered.find((c) => c.name.toLowerCase() === cmd.name.toLowerCase());
       if (!c) return notRegistered.push(cmd);
 
