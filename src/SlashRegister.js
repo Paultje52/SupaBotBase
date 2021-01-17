@@ -9,6 +9,8 @@ module.exports = class SlashRegister {
   }
 
   async getCurrentCommand(guild) {
+    this.guild = guild;
+
     let res;
     if (guild) {
       // Development
@@ -44,6 +46,20 @@ module.exports = class SlashRegister {
     return parsed;
   }
 
+  async unregister(commands, guild) {
+    for (let cmd of commands) {
+      if (!cmd.id) continue;
+      let res = await fetch(`https://discord.com/api/applications/${this.main.client.user.id}/${guild ? `guilds/${guild}/` : ""}commands/${cmd.id}`, {
+        headers: {
+          Authorization: `Bot ${this.main.token}`,
+          "Content-Type": "application/json"
+        },
+        method: "DELETE"
+      });
+      console.log(await res.text());
+    }
+  }
+
   compareCommands(registered, bot) {
     let notRegistered = [];
     let needChanging = [];
@@ -51,7 +67,10 @@ module.exports = class SlashRegister {
     bot.forEach((cmd) => {
       if (!cmd.slashCommands) return;
 
-      if (registered.code === 50001) throw new Error("Can't register slash commands: Bot isn't allowed!");
+      let msg = ", the guild doens't exists or the bot isn't invited to the guild!";
+      if (this.guild && this.main.client.guilds.cache.get(this.guild)) msg = ` in ${this.main.client.guilds.cache.get(this.guild).name} (${this.guild})!`;
+
+      if (registered.code === 50001) throw new Error(`Can't register slash commands: Bot isn't to register slash commands${msg}`);
       let c = registered.find((c) => c.name.toLowerCase() === cmd.name.toLowerCase());
       if (!c) return notRegistered.push(cmd);
 

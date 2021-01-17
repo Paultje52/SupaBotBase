@@ -318,6 +318,20 @@ class SupaBotBase {
   }
 
   /**
+   * @method removeSlashCommands
+   * @async
+   * @returns {Number} The number of slash commands removed
+   * @description Unregisters slash commands
+   * @param {String|Undefined} testGuild The testguild ID, if in development
+   */
+  async removeSlashCommands(testGuild = false) {
+    let slashCommands = new SlashRegister(this.commands, this);
+    let registered = await slashCommands.getCurrentCommand(testGuild);
+    await slashCommands.unregister(registered, testGuild);
+    return registered.length || 0;
+  }
+
+  /**
    * @method registerSlashCommands
    * @async
    * @returns {undefined}

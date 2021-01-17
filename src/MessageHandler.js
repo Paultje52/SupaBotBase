@@ -31,8 +31,15 @@ module.exports = class MessageHandler {
     }
 
     if (!(await this.checkSecurity(cmdFile, message, args))) return;
+    try {
 
-    cmdFile.onExecute(message, args);
+      cmdFile.onExecute(message, args).catch((e) => {
+        this.onError(e, message, cmdFile);
+      });
+
+    } catch(e) {
+      this.onError(e, message, cmdFile);
+    }
   }
 
   async checkSecurity(cmdFile, message, args) {
