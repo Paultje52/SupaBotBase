@@ -46,7 +46,7 @@ class SupaBotBase {
    * @returns {Undefined}
    */
   activateErrorHandler() {
-    this.errorHandler = new ErrorHandler(this.database);
+    this.errorHandler = new ErrorHandler(this.database, this.client);
   }
 
   /**

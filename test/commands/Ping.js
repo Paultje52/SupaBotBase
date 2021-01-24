@@ -16,7 +16,7 @@ module.exports = class Ping extends CommandConstructor {
   }
 
   async onExecute(message) {
-    // throw new Error("Test!");
+    
     if (message.isSlashCommand) {
       if (this.last) message.answerCommand(`**Last ping**\n🏓 ${this.last.ping}ms\n💙 ${this.last.ws}ms`)
       else message.answerCommand(`Pong! Use \`${message.prefix}ping\` to calculate my ping!`);

@@ -1,9 +1,11 @@
+const { Message } = require("discord.js");
 const randomString = require("random-string");
 
 module.exports = class ErrorHandler {
 
-  constructor(database) {
+  constructor(database, client) {
     this.database = database;
+    this.client = client;
 
     if (database) {
       this._getErrorList = this.database.db.prepare("SELECT key FROM `SupaBotBaseData` WHERE `key` LIKE 'error-________'");
@@ -25,7 +27,12 @@ module.exports = class ErrorHandler {
       let id = this._generateErrorID();
       this.database.set(`error-${id}`, {
         message,
-        error,
+        channelId: message.channel.id,
+        error: {
+          stack: error.stack,
+          message: error.message,
+          name: error.name
+        },
         cmd: {
           help: cmd.help,
           args: cmd.args,
@@ -46,6 +53,28 @@ module.exports = class ErrorHandler {
     let id = randomString({length: 8});
     if (this.database.get(id)) return this._generateErrorID();
     return id;
+  }
+
+  getErrorList() {
+    if (!this.database) return [];
+    return this._getErrorList.all().map((e) => e.key.split("error-")[1]);
+  }
+
+  async getError(id) {
+    if (!this.database) return false;
+
+    let error = this._getError(id);
+    if (!error) return false;
+
+    let message = new Message(this.client, error.message, 
+      await this.client.channels.fetch(error.channelId)
+    );
+
+    return {
+      message,
+      error: error.error,
+      cmd: error.cmd
+    }
   }
 
   /**
