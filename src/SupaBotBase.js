@@ -3,6 +3,7 @@ const { resolve, join } = require("path");
 const { Client } = require("discord.js");
 const Database = require("./Database.js");
 const SlashRegister = require("./SlashRegister.js");
+const ErrorHandler = require("./ErrorHandler.js");
 
 /**
  * Interface for the SupaBotBase Options
@@ -40,13 +41,12 @@ class SupaBotBase {
   }
 
   /**
-   * @method onError
-   * @description Set a function to call when an error occurred. Return false to stop the default error message to be send.
-   * @returns {undefined}
-   * @param {Function} f The function to call when an error occurred
+   * @method activateErrorHandler
+   * @description Activates the error handler
+   * @returns {Undefined}
    */
-  onError(f = () => {}) {
-    this.errorCallback = f;
+  activateErrorHandler() {
+    this.errorHandler = new ErrorHandler(this.database);
   }
 
   /**

@@ -90,7 +90,7 @@ module.exports = class Permissions extends CommandConstructor {
     this.setSlashCommandType("hidden");
   }
 
-  async onExecute(message, args) {
+  onExecute(message, args) {
 
     let permissions = args[1].permissions;
     if (args[2]) permissions = args[1].permissionsIn(args[2]);

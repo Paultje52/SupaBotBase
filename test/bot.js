@@ -28,13 +28,16 @@ const { MessageEmbed } = require("discord.js");
     return "Nope!";
   });
 
+  // Activate error handler
+  bot.activateErrorHandler();
+
   // Start the bot
   console.log("Starting bot...");
   await bot.start();
 
   // Log that the bot is logged in!
   console.log("\x1b[2mBot logged in, waiting for ready signal...\x1b[0m");
-  // bot.registerSlashCommands("testGuildID");
+  bot.registerSlashCommands("429883132636954624");
   // bot.removeSlashCommands("testGuildID");
 
 })();
