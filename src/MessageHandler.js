@@ -31,7 +31,7 @@ module.exports = class MessageHandler {
       if (!args) return;
     }
 
-    if (cmd.security && !(await this.checkSecurity(cmd, message, args))) return;
+    if (cmdFile.security && !(await this.checkSecurity(cmdFile, message, args))) return;
     
     try {
 
