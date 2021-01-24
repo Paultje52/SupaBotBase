@@ -114,6 +114,8 @@ class SupaBotBase {
   async loadFunction(file) {
     // Try/catch block for errors
     try {
+      // Delete the require cache of the command
+      delete require.cache[require.resolve(file)];
 
       let f = new (require(file)); // Require the function file and construct the class
       let name = await f.getName(); // Get the name of the class
@@ -156,6 +158,8 @@ class SupaBotBase {
   async loadEvent(event) {
     // Try/catch block for errors
     try {
+      // Delete the require cache of the command
+      delete require.cache[require.resolve(event)];
 
       let e = new (require(event)); // Require the event file and construct the class
       let name = await e.getEvent(); // Get the name of the event
@@ -206,6 +210,8 @@ class SupaBotBase {
   loadCommand(file) {
     // Try/catch block for errors
     try {
+      // Delete the require cache of the command
+      delete require.cache[require.resolve(file)];
       // Require command file and construct the class
       let cmd = new (require(file));
       // Set the file path to the command
