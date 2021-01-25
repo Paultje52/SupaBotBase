@@ -46,33 +46,36 @@ class SupaBotBase {
    * @returns {Undefined}
    */
   activateErrorHandler() {
-    this.errorHandler = new ErrorHandler(this.database, this.client);
+    this.errorHandler = new ErrorHandler(this);
   }
 
   /**
-   * @method translateRawReactions
+   * @method translateRawMessageEvents
    * @description Automaticly calls "messageReactionAdd" and "messageReactionRemove" when the message isn't cached. It also parses the raw data!
    * @returns {undefined}
    */
-  translateRawReactions() {
+  translateRawMessageEvents() {
     // Make sure it only activates once
-    if (this.rawReactionsTranslatorActive) return;
-    this.rawReactionsTranslatorActive = true;
+    if (this.translateRawMessageEventsActive) return;
+    this.translateRawMessageEventsActive = true;
 
     // Listen!
     this.client.on("raw", async (packet) => {
-      if (!["MESSAGE_REACTION_ADD", "MESSAGE_REACTION_REMOVE"].includes(packet.t)) return;
-      let channel = await this.client.channels.fetch(packet.d.channel_id);
-      if (channel.messages.cache.has(packet.d.message_id)) return;
+      if (["MESSAGE_REACTION_ADD", "MESSAGE_REACTION_REMOVE"].includes(packet.t)) {
 
-      let message = await channel.messages.fetch(packet.d.message_id);
-      let emoji = packet.d.emoji.id ? `${packet.d.emoji.name}:${packet.d.emoji.id}` : packet.d.emoji.name;
-      let user = await this.client.users.fetch(packet.d.user_id);
-      
-      let reaction = message.reactions.cache.get(emoji);
-      if (reaction) reaction.users.cache.set(packet.d.user_id, user);
-              
-      this.client.emit(packet.t === "MESSAGE_REACTION_ADD" ? "messageReactionAdd" : "messageReactionRemove", reaction, user);
+        let channel = await this.client.channels.fetch(packet.d.channel_id);
+        if (channel.messages.cache.has(packet.d.message_id)) return;
+
+        let message = await channel.messages.fetch(packet.d.message_id);
+        let emoji = packet.d.emoji.id ? `${packet.d.emoji.name}:${packet.d.emoji.id}` : packet.d.emoji.name;
+        let user = await this.client.users.fetch(packet.d.user_id);
+        
+        let reaction = message.reactions.cache.get(emoji);
+        if (reaction) reaction.users.cache.set(packet.d.user_id, user);
+                
+        this.client.emit(packet.t === "MESSAGE_REACTION_ADD" ? "messageReactionAdd" : "messageReactionRemove", reaction, user);
+
+      }
     });
 
   }
