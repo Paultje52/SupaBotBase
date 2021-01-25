@@ -10,6 +10,7 @@ module.exports = class ErrorHandler {
     if (database) {
       this._getErrorList = this.database.db.prepare("SELECT key FROM `SupaBotBaseData` WHERE `key` LIKE 'error-________'");
       this._getError = (errorId) => this.database.get(`error-${errorId}`);
+      this._deleteError = (errorId) => this.database.delete(`error-${errorId}`);
     }
   }
 
@@ -75,6 +76,20 @@ module.exports = class ErrorHandler {
       error: error.error,
       cmd: error.cmd
     }
+  }
+
+  removeError(id) {
+    if (!this.database) return false;
+    this._deleteError(id);
+    return true;
+  }
+
+  clearErrors() {
+    let errors = this.getErrorList();
+    for (let error of errors) {
+      this.removeError(error);
+    }
+    return errors.length;
   }
 
   /**
