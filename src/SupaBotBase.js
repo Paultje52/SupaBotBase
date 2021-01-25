@@ -50,6 +50,34 @@ class SupaBotBase {
   }
 
   /**
+   * @method translateRawReactions
+   * @description Automaticly calls "messageReactionAdd" and "messageReactionRemove" when the message isn't cached. It also parses the raw data!
+   * @returns {undefined}
+   */
+  translateRawReactions() {
+    // Make sure it only activates once
+    if (this.rawReactionsTranslatorActive) return;
+    rawReactionsTranslatorActive = true;
+
+    // Listen!
+    this.client.on("raw", async (packet) => {
+      if (!["MESSAGE_REACTION_ADD", "MESSAGE_REACTION_REMOVE"].includes(packet.t)) return;
+      let channel = await client.channels.fetch(packet.d.channel_id);
+      if (channel.messages.cache.has(packet.d.message_id)) return;
+
+      let message = await channel.messages.fetch(packet.d.message_id);
+      let emoji = packet.d.emoji.id ? `${packet.d.emoji.name}:${packet.d.emoji.id}` : packet.d.emoji.name;
+      let user = await client.users.fetch(packet.d.user_id);
+      
+      let reaction = message.reactions.cache.get(emoji);
+      if (reaction) reaction.users.cache.set(packet.d.user_id, user);
+              
+      client.emit(packet.t === "MESSAGE_REACTION_ADD" ? "messageReactionAdd" : "messageReactionRemove", reaction, user);
+    });
+
+  }
+
+  /**
    * @method loadToken
    * @description Loads the bot token
    * @returns {undefined}
