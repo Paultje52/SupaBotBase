@@ -57,7 +57,7 @@ class SupaBotBase {
   translateRawReactions() {
     // Make sure it only activates once
     if (this.rawReactionsTranslatorActive) return;
-    rawReactionsTranslatorActive = true;
+    this.rawReactionsTranslatorActive = true;
 
     // Listen!
     this.client.on("raw", async (packet) => {
