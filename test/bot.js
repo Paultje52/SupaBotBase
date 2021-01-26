@@ -30,7 +30,7 @@ const { MessageEmbed } = require("discord.js");
 
   // Activate error handler
   bot.activateErrorHandler();
-  bot.errorHandler.setLogChannel("LOG_CHANNEL_ID");
+  bot.errorHandler.setLogChannel("CHANNEL_ID");
 
   // Start the bot
   console.log("Starting bot...");

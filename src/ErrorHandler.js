@@ -13,6 +13,8 @@ module.exports = class ErrorHandler {
       this._getError = (errorId) => this.database.get(`error-${errorId}`);
       this._deleteError = (errorId) => this.database.delete(`error-${errorId}`);
     }
+    
+    this._mountProcessErrors();
   }
 
   async _onMessageError(error, message, cmd) {
@@ -30,6 +32,7 @@ module.exports = class ErrorHandler {
       this.database.set(`error-${id}`, {
         message,
         channelId: message.channel.id,
+        isMessageError: true,
         error: {
           stack: error.stack,
           message: error.message,
@@ -49,8 +52,12 @@ module.exports = class ErrorHandler {
       message.answerCommand(`**Error**\nAn error occurred while trying to run \`${cmd.help.name}\`.\nThis error has been reported with ID **#${id}**`);
 
       this._sendErrorMessage(message, error, cmd, id);
+      return;
 
-    } else message.answerCommand(`An error occurred while trying to run this command. The error has been reported!`);
+    } 
+    
+    message.answerCommand(`An error occurred while trying to run this command. The error has been reported!`);
+    this._sendErrorMessage(message, error, cmd, "No_DB");
 
   }
 
@@ -58,7 +65,7 @@ module.exports = class ErrorHandler {
     if (!this.logChannel) return;
 
     let msg = await this.logChannel.send(new MessageEmbed());
-    msg.react("📧");
+    if (this.database) msg.react("📧");
     this._updateErrorMessage(message, error, cmd, errorId, false, msg);
 
     if (this.errorMessages) {
@@ -71,20 +78,56 @@ module.exports = class ErrorHandler {
     }
 
   }
+  
+  async _onOtherError(error, type) {
+    
+    console.error(type, error);
+    let id = "";
+
+    if (this.database) {
+      id = this._generateErrorID();
+      this.database.set(`error-${id}`, {
+        error,
+        type,
+        time: Date.now()
+      });
+      id = ` #${id}`;
+    }
+
+    if (!this.logChannel) return;
+    let msg = await this.logChannel.send(new MessageEmbed());
+    this._updateOtherErrorMessage(type, error, id, msg);
+
+    this.errorMessages[msg.id] = {
+      error: id.split(" #").join(""),
+      channel: msg.channel.id
+    }
+    this.database.set("error-messages", this.errorMessages);
+  }
+
+  _updateOtherErrorMessage(type, error, errorId, msg) {
+    let embed = new MessageEmbed()
+      .setTitle(`Error${errorId}`)
+      .setColor("#8b0000")
+      .setDescription(`**Type**: \`${type}\`${(error instanceof Error) ? "" : "\n> _Error isn't an object, location can't be traced!_"}\n\`\`\`${(error.stack || error).toString().substr(0, 1000-6)}\`\`\``)
+      .setTimestamp()
+
+    msg.edit(embed);
+  }
 
   _updateErrorMessage(message, error, cmd, errorId, invite, toUpdate) {
     let embed = new MessageEmbed()
       .setTitle(`Error #${errorId}`)
       .setColor("#ff0000")
       .setAuthor(`${message.author.tag} (${message.author.id})`, message.author.avatarURL(), message.url)
-      .setTimestamp()
+      .setTimestamp(message.createdTimestamp)
       .setDescription(`Guild: ${message.guild.name} (${message.guild.id})\nChannel: <#${message.channel.id}> (${message.channel.name}, ${message.channel.id})\nAuthor: <@${message.author.id}> (${message.author.tag}, ${message.author.id})\nMessage link: [click](${message.url})`)
       .addField("**Message**", `\`\`\`${message.content.substr(0, 1000-6)}\`\`\``)
       .addField("**Error**", `\`\`\`${error.stack.toString().substr(0, 1000-6)}\`\`\``)
       .addField("**Command**", `Name: **${cmd.help.name}**\nTriggerType: **${message.isSlashCommand ? `Slash (${cmd.slashCommandType})` : "Message"}**\nFile: \`${cmd._file}\``)
       
     if (invite) embed.description += `\nInvite: ${invite}`;
-    else embed.setFooter(`Click 📧 to generate invite link`);
+    else if (this.database) embed.setFooter(`Click 📧 to generate invite link`);
 
     toUpdate.edit(embed);
   }
@@ -106,23 +149,29 @@ module.exports = class ErrorHandler {
     let error = this._getError(id);
     if (!error) return false;
 
-    let message = new Message(this.client, error.message, 
-      await this.client.channels.fetch(error.channelId)
-    );
-    Object.defineProperty(message, "author", {
-      value: await this.client.users.fetch(error.message.authorID),
-      writable: false 
-    });
-    Object.defineProperty(message, "member", {
-      value: await message.guild.members.fetch(message.author.id),
-      writable: false 
-    });
+    if (error.isMessageError) {
 
-    return {
-      message,
-      error: error.error,
-      cmd: error.cmd
-    }
+      let message = new Message(this.client, error.message, 
+        await this.client.channels.fetch(error.channelId)
+      );
+      Object.defineProperty(message, "author", {
+        value: await this.client.users.fetch(error.message.authorID),
+        writable: false 
+      });
+      Object.defineProperty(message, "member", {
+        value: await message.guild.members.fetch(message.author.id),
+        writable: false 
+      });
+
+      return {
+        message,
+        error: error.error,
+        cmd: error.cmd
+      }
+
+    } 
+    
+    return error;
   }
 
   async removeError(id, deleteMessage = true) {
@@ -181,9 +230,17 @@ module.exports = class ErrorHandler {
   _mountErrorMessageDeletionListener() {
     this.client.on("messageDelete", (message) => {
       if (!message.author.bot || !this.errorMessages || !this.errorMessages[message.id]) return;
-      console.log(this.errorMessages[message.id].error);
       this.removeError(this.errorMessages[message.id].error, false);
       delete this.errorMessages[message.id];
+    });
+  }
+
+  _mountProcessErrors() {
+    process.on("uncaughtException", (e) => {
+      this._onOtherError(e, "uncaughtException");
+    });
+    process.on("unhandledRejection", (e) => {
+      this._onOtherError(e, "unhandledRejection");
     });
   }
 
