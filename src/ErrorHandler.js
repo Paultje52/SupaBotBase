@@ -49,14 +49,16 @@ module.exports = class ErrorHandler {
           _file: cmd._file
         }
       });
-      message.answerCommand(`**Error**\nAn error occurred while trying to run \`${cmd.help.name}\`.\nThis error has been reported with ID **#${id}**`);
+      message.answerCommand(this.main.config.messages.errorWithDatabase
+        .replace("{0}", cmd.help.name)
+        .replace("{1}", id));
 
       this._sendErrorMessage(message, error, cmd, id);
       return;
 
     } 
     
-    message.answerCommand(`An error occurred while trying to run this command. The error has been reported!`);
+    message.answerCommand(this.main.config.messages.errorWithoutDatabase);
     this._sendErrorMessage(message, error, cmd, "No_DB");
 
   }

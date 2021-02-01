@@ -107,13 +107,15 @@ module.exports = class MessageHandler {
   async checkRequiredPermissions({bot = [], user = []}, message) {
     let missing = this.getMissingPermissions(bot, await message.guild.members.fetch(this.client.user.id), message.channel);
     if (missing.length > 0) {
-      message.answerCommand(`Can't run this command. I'm missing the following permissions.\n- ${missing.join("\n- ")}`);
+      message.channel.send(this.main.config.messages.botNoPermissions
+        .replace("{0}", `\n- ${missing.join("\n- ")}`) );
       return false;
     }
 
     missing = this.getMissingPermissions(user, message.member, message.channel);
     if (missing.length > 0) {
-      message.answerCommand(`Can't run this command. You're missing the following permissions.\n- ${missing.join("\n- ")}`);
+      message.channel.send(this.main.config.messages.userNoPermissions
+        .replace("{0}", `\n- ${missing.join("\n- ")}`));
       return false;
     }
 

@@ -106,6 +106,25 @@ class SupaBotBase {
   setConfig(fileOrConfig) {
     if (typeof fileOrConfig === "object") this.config = {...fileOrConfig};
     else this.config = require(join(this._dir, fileOrConfig));
+
+    if (!this.config.messages) this.config.messages = {};
+    if (!this.config.messages.errorWithDatabase) this.config.messages.errorWithDatabase = "**Error**\nAn error occurred while trying to run \`{0}\`.\nThis error has been reported with ID **#{1}**";
+    if (!this.config.messages.errorWithoutDatabase) this.config.messages.errorWithoutDatabase = "An error occurred while trying to run this command. The error has been reported!";
+    if (!this.config.messages.botNoPermissions) this.config.messages.botNoPermissions = "Can't run this command. I'm missing the following permissions. {0}";
+    if (!this.config.messages.userNoPermissions) this.config.messages.userNoPermissions = "Can't run this command. You're missing the following permissions. {0}";
+    if (!this.config.messages.wrongArguments) this.config.messages.wrongArguments = "Wrong arguments!";
+    if (!this.config.messages.usage) this.config.messages.usage = "Usage";
+    if (!this.config.messages.example) this.config.messages.example = "Example";
+    if (!this.config.messages.types) this.config.messages.types = {};
+    if (!this.config.messages.types[4]) this.config.messages.types[4] = "a valid number";
+    if (!this.config.messages.types[5]) this.config.messages.types[5] = "yes/no";
+    if (!this.config.messages.types[6]) this.config.messages.types[6] = "a user (Mention or ID)";
+    if (!this.config.messages.types[7]) this.config.messages.types[7] = "a channel (Mention or ID)";
+    if (!this.config.messages.types[8]) this.config.messages.types[8] = "a role (Mention or ID)";
+    if (!this.config.messages.needsToBe) this.config.messages.needsToBe = "Needs to be {0}";
+    if (!this.config.messages.chooseBetweenSubcommands) this.config.messages.chooseBetweenSubcommands = "You have to choose between the following subcommands.";
+    if (!this.config.messages.orOtherOptions) this.config.messages.orOtherOptions = "Or between the other options.";
+    if (!this.config.messages.chooseBetweenOptions) this.config.messages.chooseBetweenOptions = "You have to choose between the following options.";
   }
 
   /**

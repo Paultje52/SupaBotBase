@@ -97,13 +97,15 @@ module.exports = class MessageHandler {
   async checkRequiredPermissions({bot = [], user = []}, message) {
     let missing = this.getMissingPermissions(bot, await message.guild.members.fetch(this.client.user.id), message.channel);
     if (missing.length > 0) {
-      message.channel.send(`Can't run this command. I'm missing the following permissions.\n- ${missing.join("\n- ")}`);
+      message.channel.send(this.main.config.messages.botNoPermissions
+        .replace("{0}", `\n- ${missing.join("\n- ")}`) );
       return false;
     }
     
     missing = this.getMissingPermissions(user, message.member, message.channel);
     if (missing.length > 0) {
-      message.channel.send(`Can't run this command. You're missing the following permissions.\n- ${missing.join("\n- ")}`);
+      message.channel.send(this.main.config.messages.userNoPermissions
+        .replace("{0}", `\n- ${missing.join("\n- ")}`));
       return false;
     }
 
@@ -186,29 +188,23 @@ module.exports = class MessageHandler {
       let requiredSubs = [];
       let requiredOthers = [];
 
-      let typeToName = {
-        4: "a valid number",
-        5: "yes/no",
-        6: "a user (mention or ID)",
-        7: "a channel (mention or ID)",
-        8: "a role (mention or ID)"
-      }
+      let typeToName = this.main.config.messages.types;
       cmd.forEach((a) => {
         if (a.type === 1 || a.type === 2) requiredSubs.push(`**${a.name}**\n> _${a.description}_\n`);
-        else if (a.required) requiredOthers.push(`**${a.name}** (needs to be ${typeToName[a.type]})\n> _${a.description}_\n`);
+        else if (a.required) requiredOthers.push(`**${a.name}** (${this.main.config.messages.needsToBe.replace("{0}", typeToName[a.type])})\n> _${a.description}_\n`);
       });
       
-      if (requiredSubs.length > 0) requiredSubs = `You have to choose between the following subcommands.\n> ${requiredSubs.join("\n> ")}`;
+      if (requiredSubs.length > 0) requiredSubs = this.main.config.messages.chooseBetweenSubcommands + `\n> ${requiredSubs.join("\n> ")}`;
       else requiredSubs = "";
       if (requiredOthers.length > 0) {
-        if (requiredSubs) requiredOthers = `\nOr between the other options.\n> ${requiredOthers.join("\n> ")}`;
-        else requiredOthers = `You have to choose between the following options.\n> ${requiredOthers.join("\n> ")}`
+        if (requiredSubs) requiredOthers = `\n${this.main.config.messages.orOtherOptions}\n> ${requiredOthers.join("\n> ")}`;
+        else requiredOthers = `${this.main.config.messages.chooseBetweenOptions}\n> ${requiredOthers.join("\n> ")}`
       } else requiredOthers = "";
 
       message.channel.send(message.embed()
-        .setTitle("Wrong arguments!")
-        .setDescription(`Usage: \`${usage}\`\n\n${requiredSubs}${requiredOthers}`)
-        .setFooter(`Example: ${example}`)
+        .setTitle(this.main.config.messages.wrongArguments)
+        .setDescription(`${this.main.config.messages.usage}: \`${usage}\`\n\n${requiredSubs}${requiredOthers}`)
+        .setFooter(`${this.main.config.messages.example}: ${example}`)
       );
     }
 
