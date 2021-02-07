@@ -26,6 +26,7 @@ module.exports = class MessageHandler {
     if (cmdFile.args.length !== 0) {
       let example = this.getCommandExample(cmdFile, prefix);
       let usage = this.parseCommandExample(cmdFile.help.usage, prefix, cmdFile.help.name);
+      message._argAnswerSent = false;
       args = await this.checkValidArgs(cmdFile.args, args, message, example, message.guild, usage);
       if (!args) return;
     }
@@ -123,76 +124,96 @@ module.exports = class MessageHandler {
     return res;
   }
 
-  async checkValidArgs(cmd, user, message, example, guild, usage, firstArgCheck = true) {
+  async checkValidArgs(cmdArgs, user, message, example, guild, usage, onlyFirst = false) {
     let parsed = [];
 
     let curUserArg = user.shift();
-    let curArg = cmd.shift();
+    if (!cmdArgs[0]) return [];
+
+    let failed = false;
 
     if (curUserArg) {
-      if (curArg.type === 1 || curArg.type === 2) {
-        if (curArg.name.toLowerCase() === curUserArg.toLowerCase()) {
-          let res = await this.checkValidArgs(curArg.options, user, message, example, guild, usage, false);
-          if (res === false || `${res}`.includes("false")) return false;
-          parsed.push(curUserArg.toLowerCase(), ...res);
 
-        } else if (cmd.length !== 0) {
-          let res = await this.checkValidArgs(cmd, user, message, example, guild, usage, false);
-          if (res === false || `${res}`.includes("false")) return false;
-          parsed.push(curUserArg.toLowerCase(), ...res);
-        }
-      } else {
-        if (curArg.type === 3) parsed.push(curUserArg);
-        else if (curArg.type === 4) { // Number
-          let n = Number(curArg);
-          if (!isNaN(n)) parsed.push(n);
+      let res = false;
+      for (let i of cmdArgs) {
 
-        } else if (curArg.type === 5) { // True/false
-          if (curArg.toLowerCase().includes("true") || curArg.toLowerCase().includes("yes") || curArg.toLowerCase().includes("on")) parsed.push(true);
-          else if (curArg.toLowerCase().includes("false") || curArg.toLowerCase().includes("no") || curArg.toLowerCase().includes("off")) parsed.push(false);
+        if (![1, 2].includes(i.type) || i.name.toLowerCase() !== curUserArg.toLowerCase()) continue;
+        parsed.push(i.name.toLowerCase());
 
-        } else if (curArg.type === 6) { // User
-          curUserArg = this.mentionToID(curUserArg);
-          if (curUserArg) {
-            let user = await guild.members.fetch(curUserArg);
-            if (user) parsed.push(user);
-          }
+        let index = cmdArgs.indexOf(i);
+        cmdArgs.splice(index, 1);
+        if (![1, 2].includes(i.options[0].type)) onlyFirst = true;
+        res = await this.checkValidArgs(i.options, user, message, example, guild, usage, onlyFirst);
+        cmdArgs.splice(index, 0, i);
+        if (!res) return false;
 
-        } else if (curArg.type === 7) { // Channel
-          curUserArg = this.mentionToID(curUserArg);
-          if (curUserArg) {
-            let channel = guild.channels.cache.get(curUserArg);
-            if (channel) parsed.push(channel);
-          }
+        break;
 
-        } else if (curArg.type === 8) { // Role
-          curUserArg = this.mentionToID(curUserArg);
-          if (curUserArg) {
-            let role = await guild.roles.fetch(curUserArg);
-            if (role) parsed.push(role);
-          }
-        }
-
-        let res = await this.checkValidArgs(cmd, user, message, example, guild, usage);
-        if (res === false || `${res}`.includes("false")) return false;
-        parsed.push(...res);
       }
-    }
 
-    if (parsed.length === 0 && ((firstArgCheck || !curArg.required) && ![1, 2].includes(curArg.type))) return [];
+      if (res) parsed.push(...res);
+      else if (![1, 2].includes(cmdArgs[0].type)) {
+        let arg = cmdArgs.shift();
+
+        if (arg.type === 3) parsed.push(curUserArg);
+        else if (arg.type === 4) {
+          let n = Number(curUserArg);
+          if (isNaN(n)) failed = true;
+          else parsed.push(n);
+
+        } else if (arg.type === 5) {
+          let out = undefined;
+          if (curUserArg === "true" || curUserArg === "on" || curUserArg === "yes") out = true;
+          else if (curUserArg === "false" || curUserArg === "off" || curUserArg === "no") out = false;
+
+          if (out === undefined) failed = true;
+          else parsed.push(out);
+
+        } else {
+          let toFetch = curUserArg;
+          if (isNaN(Number(toFetch))) {
+            if (!toFetch.startsWith("<") || !toFetch.endsWith(">")) failed = true;
+            else toFetch = toFetch.split("<").join("").split(">").join("").split("@").join("").split("&").join("").split("#").join("").split("!").join("");
+          }
+
+          let out = false;
+          if (!failed && arg.type === 6) out = await message.guild.members.fetch(toFetch).catch(_e => {/* Nothing */});
+          else if (!failed && arg.type === 7) out = message.guild.channels.cache.get(toFetch);
+          else if (!failed && arg.type === 8) out = message.guild.roles.cache.get(toFetch);
+          
+          if (!out) failed = true;
+          else parsed.push(out);
+
+        }
+
+        if (cmdArgs[0]) {
+          let res = await this.checkValidArgs(cmdArgs, user, message, example, guild, usage);
+          if (!res) {
+            cmdArgs.unshift(arg);
+            return false;
+          };
+          parsed.push(...res);
+        }
+
+        cmdArgs.unshift(arg);
+
+      }
+      
+
+
+    } else if (([1, 2].includes(cmdArgs[0].type) || cmdArgs[0].required)) failed = true;
     
-    cmd.unshift(curArg);
+    if (failed) {
 
-    if (parsed.length === 0) {
-      parsed = false;
       let requiredSubs = [];
       let requiredOthers = [];
 
       let typeToName = this.main.config.messages.types;
-      cmd.forEach((a) => {
+      cmdArgs.forEach((a) => {
         if (a.type === 1 || a.type === 2) requiredSubs.push(`**${a.name}**\n> _${a.description}_\n`);
-        else if (a.required) requiredOthers.push(`**${a.name}** (${this.main.config.messages.needsToBe.replace("{0}", typeToName[a.type])})\n> _${a.description}_\n`);
+        else requiredOthers.push(`**${a.name}** (${this.main.config.messages.needsToBe.replace("{0}", typeToName[a.type])})\n> _${a.description}_\n`);
       });
+      if (onlyFirst) requiredOthers = [requiredOthers[0]];
       
       if (requiredSubs.length > 0) requiredSubs = this.main.config.messages.chooseBetweenSubcommands + `\n> ${requiredSubs.join("\n> ")}`;
       else requiredSubs = "";
@@ -206,6 +227,9 @@ module.exports = class MessageHandler {
         .setDescription(`${this.main.config.messages.usage}: \`${usage}\`\n\n${requiredSubs}${requiredOthers}`)
         .setFooter(`${this.main.config.messages.example}: ${example}`)
       );
+
+      return false;
+
     }
 
     return parsed;
