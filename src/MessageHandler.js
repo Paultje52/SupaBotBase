@@ -33,15 +33,14 @@ module.exports = class MessageHandler {
 
     if (cmdFile.security && !(await this.checkSecurity(cmdFile, message, args))) return;
     
+    this.client.emit("commandExecute", cmdFile, message);
     
     if (!this.main.errorHandler) return cmdFile.onExecute(message, args);
 
     if (cmdFile.onExecute.constructor.name === "AsyncFunction") return cmdFile.onExecute(message, args).catch((e) => {
       this.main.errorHandler._onMessageError(e, message, cmdFile);
     });
-
-    this.client.emit("commandExecute", cmdFile, message);
-
+    
     try {
       cmdFile.onExecute(message, args);
     } catch(e) {

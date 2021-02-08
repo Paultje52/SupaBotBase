@@ -42,6 +42,7 @@ module.exports = class MessageHandler {
 
     if (cmd.security && !(await this.checkSecurity(cmd, message, args))) return;
 
+    this.client.emit("commandExecute", cmdFile, message);
 
     if (!this.main.errorHandler) return cmd.onExecute(message, args);
 
