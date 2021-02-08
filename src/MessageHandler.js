@@ -40,7 +40,7 @@ module.exports = class MessageHandler {
       this.main.errorHandler._onMessageError(e, message, cmdFile);
     });
 
-    this.client.emit("commandExecute", cmdFile);
+    this.client.emit("commandExecute", cmdFile, message);
 
     try {
       cmdFile.onExecute(message, args);
