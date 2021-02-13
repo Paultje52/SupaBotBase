@@ -73,7 +73,7 @@ class SupaBotBase {
         let reaction = message.reactions.cache.get(emoji);
         if (reaction) reaction.users.cache.set(packet.d.user_id, user);
                 
-        this.client.emit(packet.t === "MESSAGE_REACTION_ADD" ? "messageReactionAdd" : "messageReactionRemove", reaction, user);
+        this.client.emit(packet.t === "MESSAGE_REACTION_ADD" ? "messageReactionAdd" : "messageReactionRemove", reaction || {message, emoji}, user);
 
       }
     });
