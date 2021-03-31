@@ -42,7 +42,7 @@ module.exports = class MessageHandler {
 
     if (cmd.security && !(await this.checkSecurity(cmd, message, args))) return;
 
-    this.client.emit("commandExecute", cmdFile, message);
+    this.client.emit("commandExecute", cmd, message);
 
     if (!this.main.errorHandler) return cmd.onExecute(message, args);
 
@@ -196,37 +196,41 @@ module.exports = class MessageHandler {
 
   addSlashCommandSupportData(message, clientId, token, interactionId) {
     message.isSlashCommand = true;
-    if (this.hiddenMessageType) {
+    // if (this.hiddenMessageType) {
+
+    //   message.answerCommand = async (content) => {
+    //     await fetch(`https://discord.com/api/interactions/${interactionId}/${token}/callback`, {
+    //       method: "POST",
+    //       body: JSON.stringify({
+    //         type: 3,
+    //         data: {
+    //           content: content,
+    //           flags: 1 << 6
+    //         }
+    //       }),
+    //       headers: {
+    //         "Content-Type": "application/json"
+    //       }
+    //     });
+    //   }
+
+    // } else {
 
       message.answerCommand = async (content) => {
-        await fetch(`https://discord.com/api/interactions/${interactionId}/${token}/callback`, {
-          method: "POST",
-          body: JSON.stringify({
-            type: 3,
-            data: {
-              content: content,
-              flags: 1 << 6
-            }
-          }),
-          headers: {
-            "Content-Type": "application/json"
-          }
-        });
-      }
+        let data = {};
+        if (this.hiddenMessageType) data.flags = 64;
 
-    } else {
+        if (typeof content === "string") data.content = content;
+        else data.embeds = [content];
 
-      message.answerCommand = async (content) => {
         let res = await fetch(`https://discord.com/api/webhooks/${clientId}/${token}/messages/@original`, {
-          method: "POST",
-          body: JSON.stringify({
-            content: content
-          }),
+          method: "PATCH",
+          body: JSON.stringify(data),
           headers: {
             "Content-Type": "application/json"
           }
         });
-        console.log(await res.json());
+
         return {
           edit: message.answerCommand,
           delete: () => {
@@ -235,7 +239,7 @@ module.exports = class MessageHandler {
         }
       }
 
-    }
+    // }
 
   }
 
@@ -251,22 +255,19 @@ module.exports = class MessageHandler {
   }
 
   sendAcknowledgeRequest(id, token, type) {
-    if (type === "shown") {
-      fetch(`https://discord.com/api/interactions/${id}/${token}/callback`, {
+    fetch(`https://discord.com/api/interactions/${id}/${token}/callback`, {
 
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          type: 4,
-          data: {
-            content: ""
-          }
-        }),
-        method: "POST"
-      });
-
-    } else this.hiddenMessageType = true;
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        type: 5,
+        data: {
+          flags: type === "hidden" ? 64 : 0
+        }
+      }),
+      method: "POST"
+    });
 
   }
 
