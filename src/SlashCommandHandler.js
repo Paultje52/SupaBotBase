@@ -223,7 +223,7 @@ module.exports = class MessageHandler {
         if (typeof content === "string") data.content = content;
         else data.embeds = [content];
 
-        let res = await fetch(`https://discord.com/api/webhooks/${clientId}/${token}/messages/@original`, {
+        await fetch(`https://discord.com/api/webhooks/${clientId}/${token}/messages/@original`, {
           method: "PATCH",
           body: JSON.stringify(data),
           headers: {
@@ -233,8 +233,19 @@ module.exports = class MessageHandler {
 
         return {
           edit: message.answerCommand,
-          delete: () => {
-            console.log("Need to delete the message!");
+          delete: ({timeout = 0} = {}) => {
+            return new Promise((res) => {
+
+              setTimeout(() => {
+                fetch(`https://discord.com/api/webhooks/${clientId}/${token}/messages/@original`, {
+                  method: "DELETE"
+                }).then(() => {
+                  res();
+                });
+              }, timeout);
+
+            });
+
           }
         }
       }
