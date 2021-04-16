@@ -124,7 +124,7 @@ module.exports = class ErrorHandler {
       .setAuthor(`${message.author.tag} (${message.author.id})`, message.author.avatarURL(), message.url)
       .setTimestamp(message.createdTimestamp)
       .setDescription(`Guild: ${message.guild.name} (${message.guild.id})\nChannel: <#${message.channel.id}> (${message.channel.name}, ${message.channel.id})\nAuthor: <@${message.author.id}> (${message.author.tag}, ${message.author.id})\nMessage link: [click](${message.url})`)
-      .addField("**Message**", `\`\`\`${message.content.substr(0, 1000-6)}\`\`\``)
+      .addField("**Message**", `\`\`\`${message.content ? message.content.substr(0, 1000-6) : "_Slash Command_"}\`\`\``)
       .addField("**Error**", `\`\`\`${error.stack.toString().substr(0, 1000-6)}\`\`\``)
       .addField("**Command**", `Name: **${cmd.help.name}**\nTriggerType: **${message.isSlashCommand ? `Slash (${cmd.slashCommandType})` : "Message"}**\nFile: \`${cmd._file}\``)
       

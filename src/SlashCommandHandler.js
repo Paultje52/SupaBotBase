@@ -17,7 +17,7 @@ module.exports = class MessageHandler {
     let cmd = this.getCommand(packet.d.data.name);
     if (!cmd) return;
 
-    this.sendAcknowledgeRequest(packet.d.id, packet.d.token, cmd.slashCommandType);
+    await this.sendAcknowledgeRequest(packet.d.id, packet.d.token, cmd.slashCommandType);
 
     let message = new Message(this.client, {
       id: packet.d.data.id,
@@ -137,6 +137,7 @@ module.exports = class MessageHandler {
   async fixOptions(options, commandArgs, guild) {
     let args = [];
 
+
     if (options.length === 1) options = options[0];
     else {
       for (let i in options) {
@@ -152,7 +153,7 @@ module.exports = class MessageHandler {
       if ([1, 2].includes(possibleArg.type)) {
         // Subcommand
         args.push(possibleArg.name, 
-          ...(await this.fixOptions(options.options, possibleArg.options, guild))
+          ...(await this.fixOptions(options.options || [], possibleArg.options, guild))
         );
 
       } else {
@@ -196,61 +197,42 @@ module.exports = class MessageHandler {
 
   addSlashCommandSupportData(message, clientId, token, interactionId) {
     message.isSlashCommand = true;
-    // if (this.hiddenMessageType) {
 
-    //   message.answerCommand = async (content) => {
-    //     await fetch(`https://discord.com/api/interactions/${interactionId}/${token}/callback`, {
-    //       method: "POST",
-    //       body: JSON.stringify({
-    //         type: 3,
-    //         data: {
-    //           content: content,
-    //           flags: 1 << 6
-    //         }
-    //       }),
-    //       headers: {
-    //         "Content-Type": "application/json"
-    //       }
-    //     });
-    //   }
+    message.answerCommand = async (content) => {
+      let data = {
+        content: ""
+      };
+      if (this.hiddenMessageType) data.flags = 64;
 
-    // } else {
+      if (typeof content === "string") data.content = content;
+      else data.embeds = [content];
 
-      message.answerCommand = async (content) => {
-        let data = {};
-        if (this.hiddenMessageType) data.flags = 64;
+      await fetch(`https://discord.com/api/webhooks/${clientId}/${token}/messages/@original`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
 
-        if (typeof content === "string") data.content = content;
-        else data.embeds = [content];
+      return {
+        edit: message.answerCommand,
+        delete: ({timeout = 0} = {}) => {
+          return new Promise((res) => {
 
-        await fetch(`https://discord.com/api/webhooks/${clientId}/${token}/messages/@original`, {
-          method: "PATCH",
-          body: JSON.stringify(data),
-          headers: {
-            "Content-Type": "application/json"
-          }
-        });
+            setTimeout(() => {
+              fetch(`https://discord.com/api/webhooks/${clientId}/${token}/messages/@original`, {
+                method: "DELETE"
+              }).then(() => {
+                res();
+              });
+            }, timeout);
 
-        return {
-          edit: message.answerCommand,
-          delete: ({timeout = 0} = {}) => {
-            return new Promise((res) => {
+          });
 
-              setTimeout(() => {
-                fetch(`https://discord.com/api/webhooks/${clientId}/${token}/messages/@original`, {
-                  method: "DELETE"
-                }).then(() => {
-                  res();
-                });
-              }, timeout);
-
-            });
-
-          }
         }
       }
-
-    // }
+    }
 
   }
 
@@ -265,8 +247,8 @@ module.exports = class MessageHandler {
     return this.client.channels.cache.get(id) || await this.client.channels.fetch(id);
   }
 
-  sendAcknowledgeRequest(id, token, type) {
-    fetch(`https://discord.com/api/interactions/${id}/${token}/callback`, {
+  async sendAcknowledgeRequest(id, token, type) {
+    await fetch(`https://discord.com/api/interactions/${id}/${token}/callback`, {
 
       headers: {
         "Content-Type": "application/json"
@@ -278,6 +260,15 @@ module.exports = class MessageHandler {
         }
       }),
       method: "POST"
+    });
+    await fetch(`https://discord.com/api/webhooks/${id}/${token}/messages/@original`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        content: ""
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
     });
 
   }
