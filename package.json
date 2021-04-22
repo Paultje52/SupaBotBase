@@ -1,6 +1,6 @@
 {
   "name": "supabotbase",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "An easy-to-use Discord.JS Bot base with messages and slash command support.",
   "main": "src/SupaBotBase.js",
   "repository": {
