@@ -421,7 +421,10 @@ class SupaBotBase {
       slashCommands.deleteCommands(canBeDeleted, testGuild)
     ]);
 
-    console.log(`\x1b[36m==[${notRegistered.length} new commands registered, ${needChanging.length} commands changed and ${canBeDeleted.length} commands deleted]==\x1b[0m`);
+    slashCommands.onQueueClear(() => {
+      console.log(`\x1b[36m==[${notRegistered.length} new commands registered, ${needChanging.length} commands changed and ${canBeDeleted.length} commands deleted]==\x1b[0m`);
+    });
+
   }
 
   /**

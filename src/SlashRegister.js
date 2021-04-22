@@ -6,6 +6,42 @@ module.exports = class SlashRegister {
     if (!SupaBotBase.client) throw new Error("Client isn't ready yet, please wait!");
     this.main = SupaBotBase;
     this.commands = commands;
+
+    this.queues = {
+      create: [],
+      delete: [],
+      change: []
+    };
+
+    this.createQueue();
+  }
+
+  createQueue() {
+    setInterval(async () => {
+      if (this.queues.create.length > 0) {
+        let createTask = this.queues.create.shift();
+        await createTask();
+      }
+      
+      if (this.queues.delete.length > 0) {
+        let createTask = this.queues.delete.shift();
+        await createTask();
+      }
+      
+      if (this.queues.change.length > 0) {
+        let createTask = this.queues.change.shift();
+        await createTask();
+      }
+    }, 10);
+  }
+  
+  onQueueClear(f) {
+    let i = setInterval(() => {
+      if (this.queues.create.length === 0 && this.queues.delete.length === 0 && this.queues.change.length === 0) {
+        clearInterval(i);
+        f();
+      }
+    }, 10);
   }
 
   async getCurrentCommand(guild) {
@@ -89,42 +125,66 @@ module.exports = class SlashRegister {
   async registerNewCommands(commands, guild) {
     for (let command of commands) {
 
-      let res = await fetch(`https://discord.com/api/applications/${this.main.client.user.id}/${guild ? `guilds/${guild}/` : ""}commands`, {
-        headers: {
-          Authorization: `Bot ${this.main.token}`,
-          "Content-Type": "application/json"
-        },
-        method: "POST",
-        body: JSON.stringify({
-          name: command.name,
-          description: command.description,
-          options: command.args
-        })
-      });
+      this.queues.create.push(async () => {
+        
+        let res = await fetch(`https://discord.com/api/applications/${this.main.client.user.id}/${guild ? `guilds/${guild}/` : ""}commands`, {
+          headers: {
+            Authorization: `Bot ${this.main.token}`,
+            "Content-Type": "application/json"
+          },
+          method: "POST",
+          body: JSON.stringify({
+            name: command.name,
+            description: command.description,
+            options: command.args
+          })
+        });
+      
+        if (res.headers.get("x-ratelimit-remaining")[0] == 0) {
+          let timeout = Number(res.headers.get("x-ratelimit-reset")) * 1000 - Date.now();
+          
+          await new Promise((res) => {
+            setTimeout(res, timeout);
+          });
+        }
 
-      if (guild) {
-        // Development
-        res = await res.json();
-        if (res.message === "Missing Access") return console.error(`Can't activate command for guild ${guild}, no access!`);
-      }
+        if (guild) {
+          // Development
+          res = await res.json();
+          if (res.message === "Missing Access") return console.error(`Can't activate command for guild ${guild}, no access!`);
+        }
+
+      });
 
     }
   }
 
   async changeCommands(commands, guild) {
     for (let command of commands) {
+      
+      this.queues.change.push(async () => {
 
-      await fetch(`https://discord.com/api/applications/${this.main.client.user.id}/${guild ? `guilds/${guild}/` : ""}commands/${command.id}`, {
-        headers: {
-          Authorization: `Bot ${this.main.token}`,
-          "Content-Type": "application/json"
-        },
-        method: "PATCH",
-        body: JSON.stringify({
-          name: command.name,
-          description: command.description,
-          options: command.args
-        })
+        let res = await fetch(`https://discord.com/api/applications/${this.main.client.user.id}/${guild ? `guilds/${guild}/` : ""}commands/${command.id}`, {
+          headers: {
+            Authorization: `Bot ${this.main.token}`,
+            "Content-Type": "application/json"
+          },
+          method: "PATCH",
+          body: JSON.stringify({
+            name: command.name,
+            description: command.description,
+            options: command.args
+          })
+        });
+        
+        if (res.headers.get("x-ratelimit-remaining")[0] == 0) {
+          let timeout = Number(res.headers.get("x-ratelimit-reset")) * 1000 - Date.now();
+
+          await new Promise((res) => {
+            setTimeout(res, timeout);
+          });
+        }
+
       });
 
     }
@@ -132,13 +192,25 @@ module.exports = class SlashRegister {
 
   async deleteCommands(commands, guild) {
     for (let command of commands) {
+      
+      this.queues.delete.push(async () => {
 
-      await fetch(`https://discord.com/api/applications/${this.main.client.user.id}/${guild ? `guilds/${guild}/` : ""}commands/${command.id}`, {
-        headers: {
-          Authorization: `Bot ${this.main.token}`,
-          "Content-Type": "application/json"
-        },
-        method: "DELETE"
+        let res = await fetch(`https://discord.com/api/applications/${this.main.client.user.id}/${guild ? `guilds/${guild}/` : ""}commands/${command.id}`, {
+          headers: {
+            Authorization: `Bot ${this.main.token}`,
+            "Content-Type": "application/json"
+          },
+          method: "DELETE"
+        });
+        
+        if (res.headers.get("x-ratelimit-remaining")[0] == 0) {
+          let timeout = Number(res.headers.get("x-ratelimit-reset")) * 1000 - Date.now();
+          
+          await new Promise((res) => {
+            setTimeout(res, timeout);
+          });
+        }
+
       });
 
     }
