@@ -1,3 +1,8 @@
+/**
+ * @name CommandArgument
+ * @class
+ * Add arguments for a command!
+ */
 class CommandArgument {
   
   /**
@@ -109,6 +114,11 @@ class CommandArgument {
 
 }
 
+/**
+ * @name CommandArgumentChoice
+ * @class
+ * Add argument choices for an argument!
+ */
 class CommandArgumentChoice {
 
   /**

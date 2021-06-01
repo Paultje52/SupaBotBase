@@ -15,7 +15,7 @@ const ErrorHandler = require("./ErrorHandler.js");
  */
 
 /**
- * @name 
+ * @name SupaBotBase
  * @class
  * The main SupaBotBase Class
  */

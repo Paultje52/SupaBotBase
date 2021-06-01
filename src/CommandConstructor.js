@@ -1,3 +1,8 @@
+/**
+ * @name CommandConstructor
+ * @class
+ * The constructor to extend your commands from!
+ */
 module.exports = class CommandConstructor {
   constructor() {
     this.setHelp({name: "???"});
