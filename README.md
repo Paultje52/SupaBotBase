@@ -1,5 +1,11 @@
 # SupaBotBase
-An easy-to-use Discord.js Bot base with messages and slash command support.
+An easy-to-use Discord.js Bot base with messages and slash command support.<br>
+Todo for **`v1.2.0`**.
+- [x] Rewrite the args system for commands
+- [x] Add button support
+- [ ] Add slash command permissions
+- [ ] Add documentation
+
 
 ## Documentation
 Look at the [GitHub repository wiki](https://github.com/Paultje52/SupaBotBase/wiki) for the documentation.
