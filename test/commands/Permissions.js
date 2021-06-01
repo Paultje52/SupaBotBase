@@ -73,7 +73,7 @@ module.exports = class Permissions extends CommandConstructor {
 
           new CommandArgument(types.channel)
             .setName("channel")
-            .setDescription("A channel to get the permissiosn from")
+            .setDescription("A channel to get the permissions from")
             .setRequired(false)
         )
     )
