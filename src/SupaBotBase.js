@@ -21,7 +21,7 @@ const ErrorHandler = require("./ErrorHandler.js");
  */
 class SupaBotBase {
   /**
-   * Create a  instance
+   * Create a instance
    * @param {Options} options The options for the base
    */
   constructor({dir = process.cwd(), token = "", clientOptions = {}} = {}) {
@@ -442,4 +442,5 @@ class SupaBotBase {
 
 module.exports = exports = SupaBotBase;
 exports.CommandConstructor = require("./CommandConstructor.js");
+exports.CommandArgument = require("./CommandArgument.js");
 exports.version = require("../package.json").version;

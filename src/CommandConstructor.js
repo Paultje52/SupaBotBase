@@ -34,7 +34,14 @@ module.exports = class CommandConstructor {
    * @param  {...ArgumentInterface} args The arguments
    */
   setArgs(...args) {
-    this.args = args;
+    this.args = args.map((a, i) => {
+      if (typeof a !== "object") throw new Error(`Invalid arg type for command ${this.help.name} (Arg ${i})!`);
+      if (a instanceof require("./CommandArgument.js")) return a._parse();
+      else {
+        console.warn(`Using old arg type in command ${this.help.name} (Arg ${i}), please switch to the new method!`);
+        return a;
+      }
+    });
   }
 
   /**

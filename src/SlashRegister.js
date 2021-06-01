@@ -1,5 +1,4 @@
 const fetch = require("node-fetch");
-const _ = require("lodash");
 
 module.exports = class SlashRegister {
   constructor(commands, SupaBotBase) {
@@ -110,7 +109,8 @@ module.exports = class SlashRegister {
       let c = registered.find((c) => c.name.toLowerCase() === cmd.name.toLowerCase());
       if (!c) return notRegistered.push(cmd);
 
-      if (c.description !== cmd.description || (cmd.args.length !== 0 && !_.isEqual(cmd.args, c.options))) {
+      if (!c.options) c.options = [];
+      if (c.description !== cmd.description || (cmd.args.length !== 0 && JSON.stringify(cmd.args) !== JSON.stringify(c.options))) {
         cmd.id = c.id;
         needChanging.push(cmd);
       }
@@ -176,7 +176,7 @@ module.exports = class SlashRegister {
             options: command.args
           })
         });
-        
+
         if (res.headers.get("x-ratelimit-remaining")[0] == 0) {
           let timeout = Number(res.headers.get("x-ratelimit-reset")) * 1000 - Date.now();
 

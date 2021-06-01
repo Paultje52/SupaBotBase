@@ -1,4 +1,5 @@
-const CommandConstructor = require(`../../`).CommandConstructor;
+const { CommandConstructor, CommandArgument } = require(`../../`);
+const { CommandArgument: {types} } = require("../../");
 
 let permissionList = {
   CREATE_INSTANT_INVITE: "Create invites",
@@ -45,40 +46,38 @@ module.exports = class Permissions extends CommandConstructor {
     });
     this.setAliases("prm", "permission", "getpermission");
 
-    this.setArgs({
-      name: "user",
-      description: "Get permissions for a user",
-      type: 1, // Subcommand
-      options: [{
-        name: "user",
-        description: "The target user",
-        type: 6, // User
-        required: true
-      }, {
-        name: "channel",
-        description: "A channel to get the permissions from",
-        type: 7, // Channel
-        required: false
-      }]
+    this.setArgs(
+      new CommandArgument(types.subCommand)
+        .setName("user")
+        .setDescription("Get the permissions for a user")
+        .setOptions(
+          new CommandArgument(types.user)
+            .setName("user")
+            .setDescription("The target user")
+            .setRequired(true),
 
-    }, {
-      name: "role",
-      description: "Get permissions for a role",
-      type: 1, // Subcommand
-      options: [{
-        name: "role",
-        description: "The target role",
-        type: 8, // Role
-        required: true
-      }, {
-        name: "channel",
-        description: "A channel to get the permissions from",
-        type: 7, // channel
-        required: false
-      }]
+          new CommandArgument(types.channel)
+            .setName("channel")
+            .setDescription("A channel to get the permissiosn from")
+            .setRequired(false)
+        ),
+    
+      new CommandArgument(types.subCommand)
+        .setName("role")
+        .setDescription("Get the permissions for a role")
+        .setOptions(
+          new CommandArgument(types.role)
+            .setName("role")
+            .setDescription("The target role")
+            .setRequired(true),
 
-    });
-
+          new CommandArgument(types.channel)
+            .setName("channel")
+            .setDescription("A channel to get the permissiosn from")
+            .setRequired(false)
+        )
+    )
+    
     this.setExamples(
       "%PREFIX%permission user @user",
       "%PREFIX%permission user @user #channel",
