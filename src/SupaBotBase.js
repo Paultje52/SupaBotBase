@@ -443,4 +443,5 @@ class SupaBotBase {
 module.exports = exports = SupaBotBase;
 exports.CommandConstructor = require("./CommandConstructor.js");
 exports.CommandArgument = require("./CommandArgument.js");
+exports.ButtonHandler = require("./ButtonHandler.js");
 exports.version = require("../package.json").version;
