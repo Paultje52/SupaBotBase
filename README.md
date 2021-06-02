@@ -3,7 +3,7 @@ An easy-to-use Discord.js Bot base with messages and interactions support.<br>
 Todo for **`v1.2.0`**.
 - [x] Rewrite the args system for commands
 - [x] Add button support
-- [ ] Fix button support for slash commands
+- [x] Fix button support for slash commands
 - [ ] Add slash command permissions
 - [ ] Add documentation
 

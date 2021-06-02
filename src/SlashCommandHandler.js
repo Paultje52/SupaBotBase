@@ -24,6 +24,7 @@ module.exports = class MessageHandler {
       author: packet.d.member.user,
       tts: false
     }, channel);
+    message.command = cmd;
     Object.defineProperty(message, "member", {
       value: await message.guild.members.fetch(message.author.id),
       writable: false 
@@ -195,8 +196,9 @@ module.exports = class MessageHandler {
     if (!message.author.settings) message.author.settings = this.main.config.database.defaultUserSettings || {};
   }
 
-  addSlashCommandSupportData(message, clientId, token, interactionId) {
+  addSlashCommandSupportData(message, clientId, token) {
     message.isSlashCommand = true;
+    message._slashCommandData = { clientId, token };
 
     message.answerCommand = async (content) => {
       let data = {

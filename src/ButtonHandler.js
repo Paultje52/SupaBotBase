@@ -77,18 +77,11 @@ class ButtonHandler extends EventEmitter {
     if (this.content) body.content = this.content;
     if (this.embed) body.embed = this.embed.toJSON();
 
-    let res = await fetch(`https://discord.com/api/channels/${message.channel.id}/messages`, {
-      method: "POST",
-      
-      headers: {
-        Authorization: `Bot ${this.supaBotBase.token}`,
-        "Content-Type": "application/json"
-      },
+    let res;
+    if (message.isSlashCommand) res = await this._editSlashCommandResponse(message, body)
+    else res = await this._sendMessage(message, body);
 
-      body: JSON.stringify(body)
-    });
-
-    let result = await res.json();
+    let result = await res.json();    
     this.id = result.id;
     this.channelId = message.channel.id;
 
@@ -109,37 +102,8 @@ class ButtonHandler extends EventEmitter {
         })
       }).then(() => {
 
-        this.emit("click", packet.d.data.custom_id, {
-          update: () => {
-            let rows = this.rows.map((r) => r._parse());
-            let body = {
-              components: rows
-            };
-            if (this.content) body.content = this.content;
-            if (this.embed) body.embed = this.embed.toJSON();
 
-            fetch(`https://discord.com/api/channels/${this.channelId}/messages/${this.id}`, {
-              method: "PATCH",
-              headers: {
-                Authorization: `Bot ${this.supaBotBase.token}`,
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify(body)
-            });
-          },
-
-          delete: () => {
-            
-            fetch(`https://discord.com/api/channels/${this.channelId}/messages/${this.id}`, {
-              method: "DELETE",
-              headers: {
-                Authorization: `Bot ${this.supaBotBase.token}`,
-                "Content-Type": "application/json"
-              }
-            });
-          }
-
-        });
+        this._emitClick(packet.d.data.custom_id);
 
       });
 
@@ -147,6 +111,89 @@ class ButtonHandler extends EventEmitter {
     });
 
     return this;
+  }
+
+  /**
+   * @method _editSlashCommandResponse
+   * @private
+   * @description Edit the slash command response
+   * @param {Message} message The discord.js message
+   * @param {Object} body The body to send
+   * @returns {Any} The node-fetch result
+   */
+  async _editSlashCommandResponse(message, body) {    
+    if (body.embed) body.embeds = [body.embed];   
+    if (message.command && message.command.slashCommandType === "hidden") body.flags = 64;
+
+    return await fetch(`https://discord.com/api/webhooks/${message._slashCommandData.clientId}/${message._slashCommandData.token}/messages/@original`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+  }
+
+  /**
+   * @method _sendMessage
+   * @private
+   * @description Send the message
+   * @param {Message} message The discord.js message
+   * @param {Object} body The body to send
+   * @returns {Any} The node-fetch result
+   */
+  async _sendMessage(message, body) {
+    return await fetch(`https://discord.com/api/channels/${message.channel.id}/messages`, {
+      method: "POST",
+      
+      headers: {
+        Authorization: `Bot ${this.supaBotBase.token}`,
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify(body)
+    });
+  }
+
+  /**
+   * @method _emitClick
+   * @private
+   * @description Emit the click event and prepare the actions
+   * @param {String} id The button click ID
+   * @returns {void} Nothing
+   */
+  _emitClick(id) {
+    this.emit("click", id, {
+      update: () => {
+        let rows = this.rows.map((r) => r._parse());
+        let body = {
+          components: rows
+        };
+        if (this.content) body.content = this.content;
+        if (this.embed) body.embed = this.embed.toJSON();
+
+        fetch(`https://discord.com/api/channels/${this.channelId}/messages/${this.id}`, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bot ${this.supaBotBase.token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(body)
+        });
+      },
+
+      delete: () => {
+        
+        fetch(`https://discord.com/api/channels/${this.channelId}/messages/${this.id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bot ${this.supaBotBase.token}`,
+            "Content-Type": "application/json"
+          }
+        });
+      }
+
+    });
   }
 
 }
