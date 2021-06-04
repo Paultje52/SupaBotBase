@@ -87,6 +87,7 @@ class ButtonHandler extends EventEmitter {
 
     this.supaBotBase.client.on("raw", (packet) => {
       if (packet.t !== "INTERACTION_CREATE" || packet.d.type !== 3 || packet.d.message.id !== this.id) return;
+      if (this.user && packet.d.member.user.id !== this.user.id) return;
 
       fetch(`https://discord.com/api/interactions/${packet.d.id}/${packet.d.token}/callback`, {
         method: "POST",

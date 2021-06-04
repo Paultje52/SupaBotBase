@@ -1,6 +1,6 @@
 {
   "name": "supabotbase",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "An easy-to-use Discord.js Bot base with messages and interactions support.",
   "main": "src/SupaBotBase.js",
   "repository": {
